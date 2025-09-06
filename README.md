@@ -39,6 +39,16 @@ export default tseslint.config([
 ])
 ```
 
+## Client-side encryption
+
+This app encrypts emotions client-side before storing on-chain and decrypts on read using AES-GCM via the Web Crypto API.
+
+Setup:
+
+- Copy `.env.example` to `.env`.
+- Set `VITE_ENCRYPTION_KEY` to a strong secret passphrase. Do not commit your real `.env`.
+
+Caution: If the key changes, previously stored emotions may not be readable by this app. Rotate with care.
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js

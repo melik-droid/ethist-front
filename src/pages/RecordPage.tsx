@@ -33,7 +33,13 @@ const RecordPage: React.FC = () => {
   const [apiLoading, setApiLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [urlVariable, setUrlVariable] = useState<string | null>(null);
-  const { recordEmotion, isPending, isSuccess, error } = useRecordEmotion();
+  const {
+    recordEmotion,
+    data: txData,
+    isPending,
+    isSuccess,
+    error,
+  } = useRecordEmotion();
 
   // Fetch data from API when component loads
   useEffect(() => {
@@ -114,7 +120,36 @@ const RecordPage: React.FC = () => {
     }
 
     try {
-      await recordEmotion(address, emotion);
+      // Build full JSON payload strictly from the latest form state (do not use initial API object)
+      const payloadData = {
+        id: urlVariable || "",
+        userId: "", // informational only; on-chain identity is wallet address
+        date: new Date().toISOString(),
+        market: market || null,
+        emotions: emotion,
+        mistakes: mistakes || "",
+        lessons: lessons || null,
+        tags: tags
+          ? tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
+        trades: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const payloadRoot = { success: true, data: payloadData };
+      const plaintextJson = JSON.stringify(payloadRoot);
+      console.log("[Record] Payload (plaintext JSON):", payloadRoot);
+
+      await recordEmotion(address, plaintextJson);
+      // Log hash if available on hook's data
+      if (txData && typeof txData === "object" && "hash" in txData) {
+        // @ts-expect-error runtime dynamic
+        console.log("[Record] Transaction hash:", txData.hash);
+      }
     } catch (error) {
       console.error("Error recording emotion:", error);
     }

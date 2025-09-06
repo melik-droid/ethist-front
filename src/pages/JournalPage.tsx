@@ -23,12 +23,7 @@ const JournalPage: React.FC = () => {
     null
   );
 
-  const {
-    data: emotions,
-    isLoading,
-    error,
-    refetch,
-  } = useGetEmotions(queryUserId);
+  const { data: emotions, isLoading, error } = useGetEmotions(queryUserId);
 
   // Auto-load my journey when wallet is connected
   useEffect(() => {
@@ -122,6 +117,39 @@ const JournalPage: React.FC = () => {
 
     const lowerEmotion = emotion.toLowerCase();
     return colorMap[lowerEmotion] || "from-indigo-400 to-purple-600";
+  };
+
+  // Try to parse an emotion string as JSON; supports either { success, data } or direct object
+  interface JournalJsonData {
+    id?: string;
+    userId?: string;
+    date?: string;
+    market?: string | null;
+    emotions?: string;
+    mistakes?: string;
+    lessons?: string | null;
+    tags?: string[];
+    trades?: unknown[];
+    createdAt?: string;
+    updatedAt?: string;
+  }
+
+  const hasData = (obj: unknown): obj is { data: JournalJsonData } => {
+    return !!obj && typeof obj === "object" && "data" in (obj as object);
+  };
+
+  const parseEmotionJson = (
+    value: string
+  ): { root: unknown; data: JournalJsonData } | null => {
+    try {
+      const root = JSON.parse(value);
+      const data = hasData(root)
+        ? (root.data as JournalJsonData)
+        : (root as JournalJsonData);
+      return { root, data };
+    } catch {
+      return null;
+    }
   };
 
   // Sort emotions chronologically (oldest first for roadmap)
@@ -324,12 +352,94 @@ const JournalPage: React.FC = () => {
                 >
                   {getEmotionEmoji(selectedEmotion.emotion)}
                 </div>
-                <h3 className="text-2xl font-bold text-white capitalize mb-2">
-                  {selectedEmotion.emotion}
-                </h3>
+                {(() => {
+                  const parsed = parseEmotionJson(selectedEmotion.emotion);
+                  const displayTitle =
+                    parsed?.data?.emotions || selectedEmotion.emotion;
+                  return (
+                    <h3 className="text-2xl font-bold text-white capitalize mb-2">
+                      {displayTitle}
+                    </h3>
+                  );
+                })()}
                 <p className="text-gray-400 mb-6">
                   {formatTimestamp(selectedEmotion.timestamp)}
                 </p>
+                {/* JSON details if present */}
+                {(() => {
+                  const parsed = parseEmotionJson(selectedEmotion.emotion);
+                  if (!parsed) return null;
+                  const d = parsed.data || {};
+                  return (
+                    <div className="text-left bg-gray-800 border border-gray-700 rounded-xl p-4 mb-6">
+                      <h4 className="text-white font-semibold mb-3">Details</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        {d.id && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">ID:</span> {d.id}
+                          </div>
+                        )}
+                        {d.userId && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">User ID:</span>{" "}
+                            {d.userId}
+                          </div>
+                        )}
+                        {d.date && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">Date:</span>{" "}
+                            {new Date(d.date).toLocaleString()}
+                          </div>
+                        )}
+                        {d.market && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">Market:</span>{" "}
+                            {d.market}
+                          </div>
+                        )}
+                        {d.mistakes && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">Mistakes:</span>{" "}
+                            {d.mistakes}
+                          </div>
+                        )}
+                        {d.lessons && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">Lessons:</span>{" "}
+                            {d.lessons}
+                          </div>
+                        )}
+                        {Array.isArray(d.tags) && d.tags.length > 0 && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">Tags:</span>{" "}
+                            {d.tags.join(", ")}
+                          </div>
+                        )}
+                        {d.createdAt && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">Created:</span>{" "}
+                            {new Date(d.createdAt).toLocaleString()}
+                          </div>
+                        )}
+                        {d.updatedAt && (
+                          <div className="text-gray-300">
+                            <span className="text-gray-400">Updated:</span>{" "}
+                            {new Date(d.updatedAt).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                      {/* Raw JSON for completeness */}
+                      <details className="mt-3">
+                        <summary className="cursor-pointer text-gray-400">
+                          View raw JSON
+                        </summary>
+                        <pre className="mt-2 text-xs text-gray-300 bg-gray-900 p-3 rounded-lg overflow-auto">
+                          {JSON.stringify(parsed.root, null, 2)}
+                        </pre>
+                      </details>
+                    </div>
+                  );
+                })()}
                 <button
                   onClick={() => setSelectedEmotion(null)}
                   className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:from-cyan-600 hover:to-purple-600 transition-all duration-200 font-medium"
