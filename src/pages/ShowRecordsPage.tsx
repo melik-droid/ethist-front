@@ -8,7 +8,7 @@ interface EmotionRecord {
 
 const ShowRecordsPage: React.FC = () => {
   const [userId, setUserId] = useState<string>("");
-  const [queryUserId, setQueryUserId] = useState<number | undefined>(undefined);
+  const [queryUserId, setQueryUserId] = useState<string | undefined>(undefined);
 
   const {
     data: emotions,
@@ -20,7 +20,7 @@ const ShowRecordsPage: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (userId) {
-      setQueryUserId(parseInt(userId));
+      setQueryUserId(userId);
     }
   };
 
@@ -71,13 +71,12 @@ const ShowRecordsPage: React.FC = () => {
               User ID
             </label>
             <input
-              type="number"
+              type="text"
               id="searchUserId"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               placeholder="Enter user ID to search emotions"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              min="1"
             />
           </div>
 

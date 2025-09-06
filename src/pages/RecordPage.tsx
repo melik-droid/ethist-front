@@ -15,7 +15,7 @@ const RecordPage: React.FC = () => {
     }
 
     try {
-      await recordEmotion(parseInt(userId), emotion);
+      await recordEmotion(userId, emotion);
     } catch (error) {
       console.error("Error recording emotion:", error);
     }
@@ -41,13 +41,12 @@ const RecordPage: React.FC = () => {
             User ID
           </label>
           <input
-            type="number"
+            type="text"
             id="userId"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            placeholder="Enter user ID (e.g., 1, 2, 3...)"
+            placeholder="Enter user ID (e.g., user1, alice, bob...)"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            min="1"
             required
           />
         </div>

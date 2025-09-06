@@ -1,6 +1,6 @@
 // Your EmotionRecorder contract address
 export const EMOTION_RECORDER_ADDRESS =
-  "0x6a024ed7c631796590910D5DAF874D4Dbd2061A4" as const;
+  "0x2942d65D44217b4F1A2F69972e9286aeeE2780a2" as const;
 
 // Contract addresses for Rise Testnet only
 export const CONTRACT_ADDRESSES = {
@@ -15,9 +15,9 @@ export const EMOTION_RECORDER_ABI = [
   {
     inputs: [
       {
-        internalType: "uint256",
+        internalType: "string",
         name: "userId",
-        type: "uint256",
+        type: "string",
       },
     ],
     name: "getEmotions",
@@ -46,9 +46,9 @@ export const EMOTION_RECORDER_ABI = [
   {
     inputs: [
       {
-        internalType: "uint256",
+        internalType: "string",
         name: "userId",
-        type: "uint256",
+        type: "string",
       },
       {
         internalType: "string",

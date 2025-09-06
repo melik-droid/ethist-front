@@ -21,7 +21,7 @@ export const useEmotionRecorderWrite = () => {
 // Specific hooks for EmotionRecorder contract functions
 
 // Hook to get emotions for a user
-export const useGetEmotions = (userId?: number) => {
+export const useGetEmotions = (userId?: string) => {
   const { chain } = useAccount();
   const contractAddress = useContractAddress("emotionRecorder");
 
@@ -29,7 +29,7 @@ export const useGetEmotions = (userId?: number) => {
     address: contractAddress,
     abi: CONTRACTS.emotionRecorder.abi,
     functionName: "getEmotions",
-    args: userId !== undefined ? [BigInt(userId)] : undefined,
+    args: userId !== undefined ? [userId] : undefined,
     chainId: chain?.id,
   });
 };
@@ -40,7 +40,7 @@ export const useRecordEmotion = () => {
     useEmotionRecorderWrite();
   const contractAddress = useContractAddress("emotionRecorder");
 
-  const recordEmotion = async (userId: number, emotion: string) => {
+  const recordEmotion = async (userId: string, emotion: string) => {
     if (!contractAddress) {
       throw new Error("Contract address not found for current chain");
     }
@@ -49,7 +49,7 @@ export const useRecordEmotion = () => {
       address: contractAddress,
       abi: CONTRACTS.emotionRecorder.abi,
       functionName: "recordEmotion",
-      args: [BigInt(userId), emotion],
+      args: [userId, emotion],
     });
   };
 
