@@ -10,12 +10,7 @@ const ShowRecordsPage: React.FC = () => {
   const [userId, setUserId] = useState<string>("");
   const [queryUserId, setQueryUserId] = useState<string | undefined>(undefined);
 
-  const {
-    data: emotions,
-    isLoading,
-    error,
-    refetch,
-  } = useGetEmotions(queryUserId);
+  const { data: emotions, isLoading, error } = useGetEmotions(queryUserId);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
