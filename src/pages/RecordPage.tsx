@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
 import { useRecordEmotion } from "../hooks/useContract";
 
 // Define the expected API response type
@@ -22,7 +23,7 @@ interface ApiResponse {
 }
 
 const RecordPage: React.FC = () => {
-  const [userId, setUserId] = useState<string>("");
+  const { address } = useAccount();
   const [emotion, setEmotion] = useState<string>("");
   const [lessons, setLessons] = useState<string>("");
   const [market, setMarket] = useState<string>("");
@@ -85,7 +86,6 @@ const RecordPage: React.FC = () => {
           setMarket(journalData.market || "");
           setMistakes(journalData.mistakes || "");
           setTags(journalData.tags ? journalData.tags.join(", ") : "");
-          setUserId(journalData.userId || "");
         }
       } catch (err) {
         console.error("Error fetching API data:", err);
@@ -103,20 +103,24 @@ const RecordPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userId || !emotion) {
-      alert("Please fill in both User ID and Emotion fields");
+    if (!address) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
+    if (!emotion) {
+      alert("Please fill in the Emotion field");
       return;
     }
 
     try {
-      await recordEmotion(userId, emotion);
+      await recordEmotion(address, emotion);
     } catch (error) {
       console.error("Error recording emotion:", error);
     }
   };
 
   const handleReset = () => {
-    setUserId("");
     setEmotion("");
     setLessons("");
     setMarket("");
@@ -131,24 +135,6 @@ const RecordPage: React.FC = () => {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="userId"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            User ID
-          </label>
-          <input
-            type="text"
-            id="userId"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="Enter user ID (e.g., user1, alice, bob...)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-          />
-        </div>
-
         <div>
           <label
             htmlFor="emotion"
@@ -244,7 +230,7 @@ const RecordPage: React.FC = () => {
         <div className="flex space-x-4">
           <button
             type="submit"
-            disabled={isPending || !userId || !emotion}
+            disabled={isPending || !address || !emotion}
             className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isPending ? "Recording..." : "Record Emotion"}
