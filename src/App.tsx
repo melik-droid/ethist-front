@@ -1,20 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navigation from "./components/Navigation";
 import HomePage from "./pages/HomePage";
 import RecordPage from "./pages/RecordPage";
-import ShowRecordsPage from "./pages/ShowRecordsPage";
 import JournalPage from "./pages/JournalPage";
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
+      <div className="min-h-screen bg-[#0D0D0D] text-white">
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/record" element={<RecordPage />} />
-            <Route path="/show-records" element={<ShowRecordsPage />} />
             <Route path="/journal" element={<JournalPage />} />
           </Routes>
         </main>

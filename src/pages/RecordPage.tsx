@@ -6,21 +6,43 @@ import { useRecordEmotion } from "../hooks/useContract";
 interface JournalData {
   createdAt: string;
   date: string;
-  emotions: string;
+  emotions?: string;
+  emotion?: string;
   id: string;
   lessons: string | null;
   market: string | null;
   mistakes: string;
-  tags: string[];
+  tags: string[] | string;
   trades: unknown[];
   updatedAt: string;
   userId: string;
+  // New optional fields from API v2
+  assets?: unknown[];
+  exchangeData?: unknown;
+  positions?: unknown[];
+  summary?: unknown;
 }
 
-interface ApiResponse {
-  data: JournalData;
-  success: boolean;
-}
+// (API responses can vary; we parse dynamically without a strict interface)
+
+// Type guards to safely parse API responses
+const isObject = (v: unknown): v is Record<string, unknown> =>
+  v !== null && typeof v === "object";
+
+const isJournalData = (v: unknown): v is JournalData => {
+  if (!isObject(v)) return false;
+  // Heuristic: presence of at least one expected key
+  return (
+    "emotions" in v ||
+    "emotion" in v ||
+    "mistakes" in v ||
+    "tags" in v ||
+    "date" in v
+  );
+};
+
+const hasData = (v: unknown): v is { data: unknown } =>
+  isObject(v) && "data" in v;
 
 const RecordPage: React.FC = () => {
   const { address } = useAccount();
@@ -29,7 +51,7 @@ const RecordPage: React.FC = () => {
   const [market, setMarket] = useState<string>("");
   const [mistakes, setMistakes] = useState<string>("");
   const [tags, setTags] = useState<string>("");
-  const [apiData, setApiData] = useState<ApiResponse | null>(null);
+  const [apiData, setApiData] = useState<unknown | null>(null);
   const [apiLoading, setApiLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [urlVariable, setUrlVariable] = useState<string | null>(null);
@@ -84,14 +106,28 @@ const RecordPage: React.FC = () => {
         console.log("API Response Data:", data);
         setApiData(data);
 
-        // Populate form fields with API response data
-        if (data.success && data.data) {
-          const journalData = data.data;
-          setEmotion(journalData.emotions || "");
-          setLessons(journalData.lessons || "");
-          setMarket(journalData.market || "");
-          setMistakes(journalData.mistakes || "");
-          setTags(journalData.tags ? journalData.tags.join(", ") : "");
+        // Immediate populate for reliability (in addition to apiData effect)
+        const jdNow = parseJournalFromResponse(data);
+        console.log("jdnow: " + JSON.stringify(jdNow));
+        if (jdNow) {
+          const emoNow = jdNow.emotions ?? jdNow.emotion ?? "";
+          const tagNow = Array.isArray(jdNow.tags)
+            ? jdNow.tags.join(", ")
+            : typeof jdNow.tags === "string"
+            ? jdNow.tags
+            : "";
+          console.log("Setting form (immediate) from journalData:", {
+            emotion: emoNow,
+            lessons: jdNow.lessons ?? "",
+            market: jdNow.market ?? "",
+            mistakes: jdNow.mistakes ?? "",
+            tags: tagNow,
+          });
+          setEmotion(emoNow);
+          setLessons(jdNow.lessons ?? "");
+          setMarket(jdNow.market ?? "");
+          setMistakes(jdNow.mistakes ?? "");
+          setTags(tagNow);
         }
       } catch (err) {
         console.error("Error fetching API data:", err);
@@ -105,6 +141,52 @@ const RecordPage: React.FC = () => {
 
     fetchApiData();
   }, []);
+
+  // Parse helper to extract JournalData from various shapes
+  const parseJournalFromResponse = (
+    payload: unknown
+  ): JournalData | undefined => {
+    const respUnknown = payload as unknown;
+    if (isJournalData(respUnknown)) {
+      console.log("API parse: using root path");
+      return respUnknown;
+    }
+    if (hasData(respUnknown)) {
+      const inner1 = respUnknown.data;
+      if (isJournalData(inner1)) {
+        console.log("API parse: using data path");
+        return inner1;
+      }
+      if (hasData(inner1) && isJournalData(inner1.data)) {
+        console.log("API parse: using data.data path");
+        return inner1.data;
+      }
+    }
+    return undefined;
+  };
+
+  // Populate inputs whenever apiData arrives/changes
+  useEffect(() => {
+    if (!apiData) return;
+    const journalData = parseJournalFromResponse(apiData);
+    if (!journalData) {
+      console.warn("API response did not contain expected journal data");
+      return;
+    }
+    console.log("API parsed journalData:", journalData);
+    const emo = journalData.emotions ?? journalData.emotion ?? "";
+    const tagVal = Array.isArray(journalData.tags)
+      ? journalData.tags.join(", ")
+      : typeof journalData.tags === "string"
+      ? journalData.tags
+      : "";
+
+    setEmotion(emo);
+    setLessons(journalData.lessons ?? "");
+    setMarket(journalData.market ?? "");
+    setMistakes(journalData.mistakes ?? "");
+    setTags(tagVal);
+  }, [apiData, setEmotion, setLessons, setMarket, setMistakes, setTags]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -328,8 +410,10 @@ const RecordPage: React.FC = () => {
         </div>
 
         {apiLoading && <div className="text-blue-600">Loading API data...</div>}
-        {apiError && <div className="text-red-600">API Error: {apiError}</div>}
-        {apiData && !apiLoading && !apiError && (
+        {apiError ? (
+          <div className="text-red-600">API Error: {String(apiError)}</div>
+        ) : null}
+        {!!apiData && !apiLoading && !apiError && (
           <div className="text-green-600">
             ✅ API connected successfully
             <details className="mt-2">

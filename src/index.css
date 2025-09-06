@@ -1,1 +1,155 @@
 @import "tailwindcss";
+  @layer base {
+/* Custom CSS Variables */
+:root {
+  --primary-dark: #0D0D0D;
+  --secondary-dark: #1A1A1A;
+  --accent-green: #D4FF00;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+}
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--primary-dark);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Glow effect utility */
+.glow-effect {
+  filter: drop-shadow(0 0 20px rgba(212, 255, 0, 0.3));
+}
+
+.glow-hover {
+  transition: transform 280ms ease, filter 320ms ease, background-color 240ms ease, box-shadow 320ms ease;
+  will-change: transform, filter;
+  position: relative;
+}
+
+.glow-hover:hover {
+  /* Daha yumuşak parlama + hafif kaldırma */
+  transform: translateY(-3px);
+  filter: drop-shadow(0 0 10px rgba(212,255,0,0.35)) drop-shadow(0 0 22px rgba(212,255,0,0.25));
+}
+
+.glow-hover:active {
+  transform: translateY(-1px) scale(.985);
+  filter: drop-shadow(0 0 6px rgba(212,255,0,0.25));
+  transition-duration: 140ms; /* tıklamada daha hızlı tepki */
+}
+
+/* Kullanıcı tab ile gelirse buton focus durumunda da hoş gözüksün */
+.glow-hover:focus-visible {
+  outline: 2px solid #D4FF00;
+  outline-offset: 3px;
+}
+
+/* Background arch pattern */
+.bg-arch-pattern {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-arch-pattern::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 200%;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(212, 255, 0, 0.03) 35%,
+    rgba(212, 255, 0, 0.08) 40%,
+    rgba(212, 255, 0, 0.12) 45%,
+    rgba(212, 255, 0, 0.08) 50%,
+    rgba(212, 255, 0, 0.04) 55%,
+    transparent 60%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Responsive refinement: shrink ring on small devices */
+@media (max-width: 640px) { /* sm breakpoint */
+  .bg-arch-pattern::before {
+    top: -35%;
+    width: 180%; /* a bit wider to keep curvature feel */
+    height: 140%;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 25%,
+      rgba(212, 255, 0, 0.04) 32%,
+      rgba(212, 255, 0, 0.09) 38%,
+      rgba(212, 255, 0, 0.12) 44%,
+      rgba(212, 255, 0, 0.07) 50%,
+      transparent 58%
+    );
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) { /* mid tablets */
+  .bg-arch-pattern::before {
+    top: -40%;
+    height: 170%;
+    width: 140%;
+  }
+}
+
+.bg-arch-pattern > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hero content alignment tweaks so text sits within the visual center of the ring */
+.hero-content { 
+  /* subtle baseline to avoid empty rule */
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  .hero-content {
+    margin-top: 0;
+    padding-top: 4vh; /* soft offset so text merkezde kalır */
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .hero-content {
+    margin-top: 0;
+  }
+}
+}
