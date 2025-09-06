@@ -47,7 +47,7 @@ const ShowRecordsPage: React.FC = () => {
       grateful: "🙏",
       tired: "😴",
       energetic: "⚡",
-      
+
       // Extended emotions
       love: "❤️",
       joy: "😄",
@@ -70,20 +70,20 @@ const ShowRecordsPage: React.FC = () => {
       inspired: "✨",
       thoughtful: "🤔",
     };
-    
+
     // Try exact match first, then check if any key contains the emotion word
     const lowerEmotion = emotion.toLowerCase();
     if (emojiMap[lowerEmotion]) {
       return emojiMap[lowerEmotion];
     }
-    
+
     // Look for partial matches
     for (const [key, emoji] of Object.entries(emojiMap)) {
       if (lowerEmotion.includes(key) || key.includes(lowerEmotion)) {
         return emoji;
       }
     }
-    
+
     return "�"; // Default thinking emoji for any custom emotions
   };
 
@@ -138,7 +138,7 @@ const ShowRecordsPage: React.FC = () => {
       {/* Results Section */}
       {queryUserId !== undefined && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-4">
+          {/* <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold text-gray-700">
               Emotions for User ID: {queryUserId}
             </h3>
@@ -148,7 +148,7 @@ const ShowRecordsPage: React.FC = () => {
             >
               🔄 Refresh
             </button>
-          </div>
+          </div> */}
 
           {isLoading && (
             <div className="text-center py-8">

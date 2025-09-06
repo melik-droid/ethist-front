@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGetEmotions } from "../hooks/useContract";
 import { useAccount } from "wagmi";
 
@@ -15,7 +15,6 @@ interface RoadmapItemProps {
 
 const JournalPage: React.FC = () => {
   const { address } = useAccount();
-  const [userId, setUserId] = useState<string>("");
   const [queryUserId, setQueryUserId] = useState<string | undefined>(undefined);
   const [hoveredEmotion, setHoveredEmotion] = useState<EmotionRecord | null>(
     null
@@ -31,19 +30,14 @@ const JournalPage: React.FC = () => {
     refetch,
   } = useGetEmotions(queryUserId);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (userId) {
-      setQueryUserId(userId);
-    }
-  };
-
-  const useMyEmotions = () => {
+  // Auto-load my journey when wallet is connected
+  useEffect(() => {
     if (address) {
-      setUserId(address);
       setQueryUserId(address);
+    } else {
+      setQueryUserId(undefined);
     }
-  };
+  }, [address]);
 
   const formatTimestamp = (timestamp: bigint) => {
     const date = new Date(Number(timestamp) * 1000);
@@ -197,56 +191,28 @@ const JournalPage: React.FC = () => {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-6 sm:py-8">
-        {/* Search Controls */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:gap-4 sm:items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                User Wallet Address
-              </label>
-              <input
-                type="text"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                placeholder="0x... or enter wallet address"
-                className="w-full px-4 py-3 bg-gray-900/70 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-              />
+        {/* Controls (no wallet address shown) */}
+        {/* <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex items-center justify-between">
+            <div className="text-gray-300 text-sm">
+              You're viewing your journey
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              {address && (
-                <button
-                  onClick={useMyEmotions}
-                  className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white py-3 px-6 rounded-xl hover:from-cyan-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 font-medium"
-                >
-                  My Journey
-                </button>
-              )}
-
-              <button
-                onClick={handleSearch}
-                disabled={!userId || isLoading}
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 px-6 rounded-xl hover:from-blue-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
-              >
-                {isLoading ? "Loading..." : "View Journey"}
-              </button>
-
-              <button
-                onClick={() => refetch()}
-                className="bg-gray-700 text-gray-200 py-3 px-6 rounded-xl hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 font-medium"
-              >
-                🔄
-              </button>
-            </div>
+            <button
+              onClick={() => refetch()}
+              disabled={!address}
+              className="bg-gray-700 text-gray-200 py-2 px-4 rounded-xl hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+            >
+              🔄 Refresh
+            </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Results */}
         {queryUserId && (
           <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-4 sm:p-8">
             <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-                Journey: {queryUserId.slice(0, 6)}...{queryUserId.slice(-4)}
+                My Journey
               </h2>
               {emotions && (
                 <p className="text-gray-400">
@@ -393,8 +359,7 @@ const JournalPage: React.FC = () => {
               Begin Your Crypto Journey
             </h3>
             <p className="text-gray-400 mb-6">
-              Enter a wallet address to explore their crypto journey timeline,
-              or connect your wallet to view your own path to financial freedom.
+              Connect your wallet to view your crypto journey timeline.
             </p>
             {!address && (
               <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-4">
