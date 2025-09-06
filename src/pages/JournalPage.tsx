@@ -132,6 +132,11 @@ const JournalPage: React.FC = () => {
     trades?: unknown[];
     createdAt?: string;
     updatedAt?: string;
+    // Optional richer fields
+    exchangeData?: unknown;
+    assets?: unknown[];
+    positions?: unknown[];
+    summary?: unknown;
   }
 
   const hasData = (obj: unknown): obj is { data: JournalJsonData } => {
@@ -150,6 +155,37 @@ const JournalPage: React.FC = () => {
     } catch {
       return null;
     }
+  };
+
+  // helpers for safe rendering of unknown shapes
+  const isRecord = (v: unknown): v is Record<string, unknown> =>
+    v !== null && typeof v === "object";
+
+  const getKey = (o: Record<string, unknown> | undefined, k: string): unknown =>
+    o ? o[k] : undefined;
+
+  const pickStr = (
+    o: Record<string, unknown>,
+    keys: string[]
+  ): string | undefined => {
+    for (const k of keys) {
+      const v = o[k];
+      if (typeof v === "string" && v.trim()) return v;
+    }
+    return undefined;
+  };
+
+  const pickNum = (
+    o: Record<string, unknown>,
+    keys: string[]
+  ): string | undefined => {
+    for (const k of keys) {
+      const v = o[k];
+      if (typeof v === "number") return String(v);
+      if (typeof v === "string" && v.trim() && !Number.isNaN(Number(v)))
+        return v;
+    }
+    return undefined;
   };
 
   // Sort emotions chronologically (oldest first for roadmap)
@@ -428,6 +464,134 @@ const JournalPage: React.FC = () => {
                           </div>
                         )}
                       </div>
+
+                      {(() => {
+                        // Exchange snapshot (flexible parsing)
+                        const ex = isRecord(d.exchangeData)
+                          ? d.exchangeData
+                          : undefined;
+                        const exSummaryUnknown = getKey(ex, "summary");
+                        const summary = isRecord(exSummaryUnknown)
+                          ? exSummaryUnknown
+                          : isRecord(d.summary)
+                          ? d.summary
+                          : undefined;
+                        const exTopHoldings = getKey(ex, "topHoldings");
+                        const exHoldings = getKey(ex, "holdings");
+                        const holdings: unknown[] | undefined = Array.isArray(
+                          exTopHoldings
+                        )
+                          ? (exTopHoldings as unknown[])
+                          : Array.isArray(exHoldings)
+                          ? (exHoldings as unknown[])
+                          : Array.isArray(d.assets)
+                          ? d.assets
+                          : undefined;
+                        const exPositions = getKey(ex, "positions");
+                        const positions: unknown[] | undefined = Array.isArray(
+                          exPositions
+                        )
+                          ? (exPositions as unknown[])
+                          : Array.isArray(d.positions)
+                          ? d.positions
+                          : undefined;
+
+                        if (!ex && !summary && !holdings && !positions)
+                          return null;
+                        return (
+                          <div className="mt-4 border-t border-gray-700 pt-4">
+                            <h5 className="text-white font-semibold mb-3">
+                              Exchange Snapshot
+                            </h5>
+
+                            {summary && (
+                              <div className="mb-4">
+                                <div className="text-gray-400 text-sm mb-2">
+                                  Summary
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  {Object.entries(summary)
+                                    .filter(
+                                      ([, v]) =>
+                                        typeof v === "string" ||
+                                        typeof v === "number"
+                                    )
+                                    .slice(0, 8)
+                                    .map(([k, v]) => (
+                                      <div key={k} className="text-gray-300">
+                                        <span className="text-gray-400 capitalize">
+                                          {k}:
+                                        </span>{" "}
+                                        {String(v)}
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {holdings && holdings.length > 0 && (
+                              <div className="mb-2">
+                                <div className="text-gray-400 text-sm mb-2">
+                                  Top Holdings
+                                </div>
+                                <ul className="space-y-1">
+                                  {holdings.slice(0, 5).map((h, idx) => {
+                                    if (!isRecord(h)) return null;
+                                    const symbol =
+                                      pickStr(h, [
+                                        "symbol",
+                                        "ticker",
+                                        "coin",
+                                        "asset",
+                                        "name",
+                                      ]) || `#${idx + 1}`;
+                                    const amount = pickNum(h, [
+                                      "amount",
+                                      "qty",
+                                      "quantity",
+                                      "size",
+                                    ]);
+                                    const value = pickNum(h, [
+                                      "value",
+                                      "usdValue",
+                                      "balanceUsd",
+                                      "worth",
+                                    ]);
+                                    return (
+                                      <li
+                                        key={idx}
+                                        className="text-gray-300 text-sm"
+                                      >
+                                        <span className="text-white font-medium">
+                                          {symbol}
+                                        </span>
+                                        {amount && (
+                                          <span className="text-gray-400">
+                                            {" "}
+                                            • {amount}
+                                          </span>
+                                        )}
+                                        {value && (
+                                          <span className="text-gray-400">
+                                            {" "}
+                                            • ${value}
+                                          </span>
+                                        )}
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            )}
+
+                            {positions && (
+                              <div className="text-gray-400 text-xs">
+                                Positions: {positions.length}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       {/* Raw JSON for completeness */}
                       <details className="mt-3">
                         <summary className="cursor-pointer text-gray-400">

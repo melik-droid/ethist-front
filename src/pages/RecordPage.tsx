@@ -202,6 +202,14 @@ const RecordPage: React.FC = () => {
     }
 
     try {
+      // Pull exchangeData from the latest fetched API (if any)
+      const parsedFromApi = apiData
+        ? parseJournalFromResponse(apiData)
+        : undefined;
+      const exchangeData =
+        parsedFromApi && parsedFromApi.exchangeData
+          ? parsedFromApi.exchangeData
+          : undefined;
       // Build full JSON payload strictly from the latest form state (do not use initial API object)
       const payloadData = {
         id: urlVariable || "",
@@ -220,6 +228,8 @@ const RecordPage: React.FC = () => {
         trades: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        // Include exchange data snapshot if available
+        ...(exchangeData ? { exchangeData } : {}),
       };
 
       const payloadRoot = { success: true, data: payloadData };
@@ -265,7 +275,7 @@ const RecordPage: React.FC = () => {
             value={emotion}
             onChange={(e) => setEmotion(e.target.value)}
             placeholder="Enter your emotion (e.g., happy, sad, excited, grateful...)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
           <p className="text-xs text-gray-500 mt-1">
@@ -285,7 +295,7 @@ const RecordPage: React.FC = () => {
             value={lessons}
             onChange={(e) => setLessons(e.target.value)}
             placeholder="What lessons did you learn?"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows={3}
           />
         </div>
@@ -303,7 +313,7 @@ const RecordPage: React.FC = () => {
             value={market}
             onChange={(e) => setMarket(e.target.value)}
             placeholder="Market conditions or context"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
@@ -319,7 +329,7 @@ const RecordPage: React.FC = () => {
             value={mistakes}
             onChange={(e) => setMistakes(e.target.value)}
             placeholder="What mistakes were made?"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows={3}
           />
         </div>
@@ -337,7 +347,7 @@ const RecordPage: React.FC = () => {
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="Enter tags separated by commas (e.g., panic, mistake, learning)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-xs text-gray-500 mt-1">
             Separate multiple tags with commas
