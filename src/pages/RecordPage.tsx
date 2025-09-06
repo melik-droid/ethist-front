@@ -58,25 +58,18 @@ const RecordPage: React.FC = () => {
           >
             Emotion
           </label>
-          <select
+          <input
+            type="text"
             id="emotion"
             value={emotion}
             onChange={(e) => setEmotion(e.target.value)}
+            placeholder="Enter your emotion (e.g., happy, sad, excited, grateful...)"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
-          >
-            <option value="">Select an emotion</option>
-            <option value="happy">😊 Happy</option>
-            <option value="sad">😢 Sad</option>
-            <option value="angry">😠 Angry</option>
-            <option value="excited">🤩 Excited</option>
-            <option value="nervous">😰 Nervous</option>
-            <option value="calm">😌 Calm</option>
-            <option value="confused">😕 Confused</option>
-            <option value="grateful">🙏 Grateful</option>
-            <option value="tired">😴 Tired</option>
-            <option value="energetic">⚡ Energetic</option>
-          </select>
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            You can enter any emotion you feel - be creative and descriptive!
+          </p>
         </div>
 
         <div className="flex space-x-4">

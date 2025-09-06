@@ -38,8 +38,7 @@ const HomePage: React.FC = () => {
                 Record Emotion
               </h2>
               <p className="text-gray-600 mb-6">
-                Store your emotions permanently on the blockchain. Each record
-                includes a timestamp and is immutable.
+                Express your emotions freely with custom text. Store your feelings permanently on the blockchain with timestamps that are immutable.
               </p>
               <Link
                 to="/record"

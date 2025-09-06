@@ -36,6 +36,7 @@ const ShowRecordsPage: React.FC = () => {
 
   const getEmotionEmoji = (emotion: string) => {
     const emojiMap: Record<string, string> = {
+      // Basic emotions
       happy: "😊",
       sad: "😢",
       angry: "😠",
@@ -46,8 +47,44 @@ const ShowRecordsPage: React.FC = () => {
       grateful: "🙏",
       tired: "😴",
       energetic: "⚡",
+      
+      // Extended emotions
+      love: "❤️",
+      joy: "😄",
+      fear: "😨",
+      surprised: "😲",
+      disgusted: "🤢",
+      anxious: "😟",
+      bored: "😴",
+      curious: "🤔",
+      hopeful: "🤞",
+      proud: "😤",
+      embarrassed: "😳",
+      frustrated: "😤",
+      relaxed: "😎",
+      amazed: "🤯",
+      content: "😌",
+      overwhelmed: "😵",
+      peaceful: "☮️",
+      motivated: "💪",
+      inspired: "✨",
+      thoughtful: "🤔",
     };
-    return emojiMap[emotion.toLowerCase()] || "😐";
+    
+    // Try exact match first, then check if any key contains the emotion word
+    const lowerEmotion = emotion.toLowerCase();
+    if (emojiMap[lowerEmotion]) {
+      return emojiMap[lowerEmotion];
+    }
+    
+    // Look for partial matches
+    for (const [key, emoji] of Object.entries(emojiMap)) {
+      if (lowerEmotion.includes(key) || key.includes(lowerEmotion)) {
+        return emoji;
+      }
+    }
+    
+    return "�"; // Default thinking emoji for any custom emotions
   };
 
   return (
