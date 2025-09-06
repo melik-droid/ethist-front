@@ -47,6 +47,17 @@ const Navigation: React.FC = () => {
               📊 Show Records
             </Link>
 
+            <Link
+              to="/journal"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive("/journal")
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-gray-100"
+              }`}
+            >
+              🗺️ Journal
+            </Link>
+
             {/* Wallet Connect Button */}
             <div className="ml-4">
               <ConnectButton />

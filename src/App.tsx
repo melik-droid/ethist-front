@@ -3,6 +3,7 @@ import Navigation from "./components/Navigation";
 import HomePage from "./pages/HomePage";
 import RecordPage from "./pages/RecordPage";
 import ShowRecordsPage from "./pages/ShowRecordsPage";
+import JournalPage from "./pages/JournalPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/record" element={<RecordPage />} />
             <Route path="/show-records" element={<ShowRecordsPage />} />
+            <Route path="/journal" element={<JournalPage />} />
           </Routes>
         </main>
       </div>

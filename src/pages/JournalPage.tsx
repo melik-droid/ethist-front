@@ -1,0 +1,414 @@
+import React, { useState } from "react";
+import { useGetEmotions } from "../hooks/useContract";
+import { useAccount } from "wagmi";
+
+interface EmotionRecord {
+  emotion: string;
+  timestamp: bigint;
+}
+
+interface RoadmapItemProps {
+  record: EmotionRecord;
+  onHover: (record: EmotionRecord | null) => void;
+  onClick: (record: EmotionRecord) => void;
+}
+
+const JournalPage: React.FC = () => {
+  const { address } = useAccount();
+  const [userId, setUserId] = useState<string>("");
+  const [queryUserId, setQueryUserId] = useState<string | undefined>(undefined);
+  const [hoveredEmotion, setHoveredEmotion] = useState<EmotionRecord | null>(
+    null
+  );
+  const [selectedEmotion, setSelectedEmotion] = useState<EmotionRecord | null>(
+    null
+  );
+
+  const {
+    data: emotions,
+    isLoading,
+    error,
+    refetch,
+  } = useGetEmotions(queryUserId);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (userId) {
+      setQueryUserId(userId);
+    }
+  };
+
+  const useMyEmotions = () => {
+    if (address) {
+      setUserId(address);
+      setQueryUserId(address);
+    }
+  };
+
+  const formatTimestamp = (timestamp: bigint) => {
+    const date = new Date(Number(timestamp) * 1000);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getEmotionEmoji = (emotion: string) => {
+    const emojiMap: Record<string, string> = {
+      happy: "😊",
+      sad: "😢",
+      angry: "😠",
+      excited: "🤩",
+      nervous: "😰",
+      calm: "😌",
+      confused: "😕",
+      grateful: "🙏",
+      tired: "😴",
+      energetic: "⚡",
+      love: "❤️",
+      joy: "😄",
+      fear: "😨",
+      surprised: "😲",
+      disgusted: "🤢",
+      anxious: "😟",
+      bored: "😴",
+      curious: "🤔",
+      hopeful: "🤞",
+      proud: "😤",
+      embarrassed: "😳",
+      frustrated: "😤",
+      relaxed: "😎",
+      amazed: "🤯",
+      content: "😌",
+      overwhelmed: "😵",
+      peaceful: "☮️",
+      motivated: "💪",
+      inspired: "✨",
+      thoughtful: "🤔",
+    };
+
+    const lowerEmotion = emotion.toLowerCase();
+    if (emojiMap[lowerEmotion]) {
+      return emojiMap[lowerEmotion];
+    }
+
+    for (const [key, emoji] of Object.entries(emojiMap)) {
+      if (lowerEmotion.includes(key) || key.includes(lowerEmotion)) {
+        return emoji;
+      }
+    }
+
+    return "🤔";
+  };
+
+  const getEmotionColor = (emotion: string) => {
+    const colorMap: Record<string, string> = {
+      happy: "from-yellow-400 to-orange-400",
+      sad: "from-blue-400 to-blue-600",
+      angry: "from-red-400 to-red-600",
+      excited: "from-purple-400 to-pink-400",
+      nervous: "from-gray-400 to-gray-600",
+      calm: "from-green-400 to-blue-400",
+      confused: "from-yellow-300 to-yellow-500",
+      grateful: "from-pink-400 to-purple-400",
+      tired: "from-indigo-400 to-purple-600",
+      energetic: "from-yellow-400 to-red-400",
+      love: "from-red-400 to-pink-400",
+      joy: "from-yellow-300 to-yellow-500",
+      fear: "from-gray-500 to-black",
+      surprised: "from-cyan-400 to-blue-400",
+      anxious: "from-orange-400 to-red-400",
+      peaceful: "from-green-300 to-blue-300",
+      motivated: "from-orange-400 to-yellow-400",
+      inspired: "from-purple-400 to-pink-400",
+    };
+
+    const lowerEmotion = emotion.toLowerCase();
+    return colorMap[lowerEmotion] || "from-indigo-400 to-purple-600";
+  };
+
+  // Sort emotions chronologically (oldest first for roadmap)
+  const sortedEmotions = emotions
+    ? [...emotions].sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+    : [];
+
+  const RoadmapItem: React.FC<RoadmapItemProps> = ({
+    record,
+    onHover,
+    onClick,
+  }) => {
+    const gradientClass = getEmotionColor(record.emotion);
+
+    return (
+      <div
+        className="relative bg-gray-800 backdrop-blur-sm rounded-xl p-4 cursor-pointer transform hover:scale-105 transition-all duration-300 hover:bg-gray-700 border border-gray-700/60 hover:border-gray-500 shadow-xl hover:shadow-2xl z-20"
+        onMouseEnter={() => onHover(record)}
+        onMouseLeave={() => onHover(null)}
+        onClick={() => onClick(record)}
+      >
+        <div className="flex items-center space-x-4">
+          <div
+            className={`w-14 h-14 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center text-white text-xl shadow-xl ring-2 ring-white/20`}
+          >
+            <span className="drop-shadow-lg">
+              {getEmotionEmoji(record.emotion)}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-white font-semibold capitalize mb-1 text-lg">
+              {record.emotion}
+            </h4>
+            <p className="text-gray-300 text-sm">
+              {formatTimestamp(record.timestamp)}
+            </p>
+          </div>
+        </div>
+
+        {/* Hover effect overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-r from-green-500/5 to-yellow-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
+      {/* Header */}
+      <div className="relative z-10 bg-gray-900/90 backdrop-blur-sm border-b border-gray-800">
+        <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-3">
+              � Crypto Journey
+            </h1>
+            <p className="text-gray-400 text-base sm:text-lg">
+              Your path to financial freedom mapped with emotions
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Search Controls */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:gap-4 sm:items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                User Wallet Address
+              </label>
+              <input
+                type="text"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                placeholder="0x... or enter wallet address"
+                className="w-full px-4 py-3 bg-gray-900/70 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              {address && (
+                <button
+                  onClick={useMyEmotions}
+                  className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white py-3 px-6 rounded-xl hover:from-cyan-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 font-medium"
+                >
+                  My Journey
+                </button>
+              )}
+
+              <button
+                onClick={handleSearch}
+                disabled={!userId || isLoading}
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 px-6 rounded-xl hover:from-blue-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+              >
+                {isLoading ? "Loading..." : "View Journey"}
+              </button>
+
+              <button
+                onClick={() => refetch()}
+                className="bg-gray-700 text-gray-200 py-3 px-6 rounded-xl hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 font-medium"
+              >
+                🔄
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results */}
+        {queryUserId && (
+          <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-4 sm:p-8">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                Journey: {queryUserId.slice(0, 6)}...{queryUserId.slice(-4)}
+              </h2>
+              {emotions && (
+                <p className="text-gray-400">
+                  {emotions.length} emotional milestone
+                  {emotions.length !== 1 ? "s" : ""}
+                </p>
+              )}
+            </div>
+
+            {isLoading && (
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-700 border-t-cyan-500"></div>
+                <p className="mt-4 text-gray-400">
+                  Loading your crypto journey...
+                </p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-900/30 border border-red-700/50 text-red-300 px-6 py-4 rounded-xl mb-6">
+                ❌ Error loading emotions: {error.message}
+              </div>
+            )}
+
+            {sortedEmotions.length > 0 && !isLoading && (
+              <div className="relative">
+                {/* Shining roadmap line */}
+                <div className="absolute left-1/2 top-0 bottom-0 w-1 transform -translate-x-1/2">
+                  <div className="w-full h-full bg-gradient-to-b from-white via-gray-300 to-white rounded-full shadow-lg">
+                    <div className="w-full h-full bg-gradient-to-b from-white to-gray-200 rounded-full animate-pulse opacity-70"></div>
+                  </div>
+                </div>
+
+                {/* Emotions displayed chronologically */}
+                <div className="space-y-8 sm:space-y-12">
+                  {sortedEmotions.map((emotion, index) => {
+                    const isEven = index % 2 === 0;
+                    return (
+                      <div
+                        key={index}
+                        className="relative flex items-center w-full"
+                      >
+                        {/* Connection line from main roadmap to emotion - shortened to not overlap with box */}
+                        <div
+                          className={`absolute top-1/2 h-0.5 bg-gradient-to-r transform -translate-y-1/2 z-0 ${
+                            isEven
+                              ? "left-1/2 w-16 sm:w-20 from-white to-gray-600"
+                              : "right-1/2 w-16 sm:w-20 from-gray-600 to-white"
+                          }`}
+                        ></div>
+
+                        {/* Emotion node on the main line */}
+                        <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-gradient-to-r from-white to-gray-400 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 ring-2 ring-gray-900/30 shadow-lg"></div>
+
+                        {/* Emotion card positioned alternately with solid background */}
+                        <div
+                          className={`flex w-full z-10 ${
+                            isEven
+                              ? "justify-end pr-4 sm:pr-8"
+                              : "justify-start pl-4 sm:pl-8"
+                          }`}
+                        >
+                          <div className="w-full max-w-xs sm:max-w-sm">
+                            <RoadmapItem
+                              record={emotion}
+                              onHover={setHoveredEmotion}
+                              onClick={setSelectedEmotion}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {sortedEmotions.length === 0 && !isLoading && !error && (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">🗺️</div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  No Journey Yet
+                </h3>
+                <p className="text-gray-400 mb-6">
+                  This crypto journey hasn't begun. Start recording emotions to
+                  see them mapped here!
+                </p>
+                <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6 max-w-md mx-auto">
+                  <p className="text-gray-300 text-sm">
+                    � Connect your wallet and record emotions as you learn about
+                    crypto and DeFi
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Emotion Detail Modal */}
+        {selectedEmotion && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+              <div className="text-center">
+                <div
+                  className={`w-20 h-20 rounded-full bg-gradient-to-r ${getEmotionColor(
+                    selectedEmotion.emotion
+                  )} flex items-center justify-center text-3xl text-white mx-auto mb-4 shadow-lg`}
+                >
+                  {getEmotionEmoji(selectedEmotion.emotion)}
+                </div>
+                <h3 className="text-2xl font-bold text-white capitalize mb-2">
+                  {selectedEmotion.emotion}
+                </h3>
+                <p className="text-gray-400 mb-6">
+                  {formatTimestamp(selectedEmotion.timestamp)}
+                </p>
+                <button
+                  onClick={() => setSelectedEmotion(null)}
+                  className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:from-cyan-600 hover:to-purple-600 transition-all duration-200 font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Hover tooltip */}
+        {hoveredEmotion && (
+          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-gray-700 text-white px-4 py-2 rounded-lg shadow-xl z-40 pointer-events-none">
+            <p className="text-sm">
+              {hoveredEmotion.emotion} •{" "}
+              {formatTimestamp(hoveredEmotion.timestamp)}
+            </p>
+          </div>
+        )}
+
+        {/* Instructions */}
+        {!queryUserId && (
+          <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 sm:p-8 text-center">
+            <div className="text-6xl mb-4">🌟</div>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              Begin Your Crypto Journey
+            </h3>
+            <p className="text-gray-400 mb-6">
+              Enter a wallet address to explore their crypto journey timeline,
+              or connect your wallet to view your own path to financial freedom.
+            </p>
+            {!address && (
+              <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-4">
+                <p className="text-sm text-gray-300">
+                  💡 Connect your wallet to track emotions during your crypto
+                  journey
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default JournalPage;
