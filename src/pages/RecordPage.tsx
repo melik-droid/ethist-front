@@ -41,9 +41,9 @@ const RecordPage: React.FC = () => {
         setApiLoading(true);
         setApiError(null);
 
-        // Parse URL parameters
+        // Parse URL parameter: expect /record?id=<value>
         const urlParams = new URLSearchParams(window.location.search);
-        const variable = urlParams.get("") || urlParams.get("variable"); // Support both ?=value and ?variable=value
+        const variable = urlParams.get("id");
 
         // Console log the parsed variable
         console.log("Parsed URL variable:", variable);
@@ -302,8 +302,7 @@ const RecordPage: React.FC = () => {
             </div>
           )}
           <div className="text-xs text-gray-400 mt-1">
-            Use: <code>/record?=yourvalue</code> or{" "}
-            <code>/record?variable=yourvalue</code>
+            Use: <code>/record?id=yourvalue</code>
           </div>
         </div>
 
