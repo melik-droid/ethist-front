@@ -84,11 +84,11 @@ html {
 .bg-arch-pattern::before {
   content: '';
   position: absolute;
-  top: -50%;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 120%;
-  height: 200%;
+  transform: translate(-50%, -50%);
+  width: 1400px;
+  height: 1400px;
   background: radial-gradient(
     ellipse at center,
     transparent 30%,
@@ -103,35 +103,9 @@ html {
   pointer-events: none;
 }
 
-/* Responsive refinement: shrink ring on small devices */
-@media (max-width: 640px) { /* sm breakpoint */
-  .bg-arch-pattern::before {
-    top: -35%;
-    width: 180%; /* a bit wider to keep curvature feel */
-    height: 140%;
-    background: radial-gradient(
-      ellipse at center,
-      transparent 25%,
-      rgba(212, 255, 0, 0.04) 32%,
-      rgba(212, 255, 0, 0.09) 38%,
-      rgba(212, 255, 0, 0.12) 44%,
-      rgba(212, 255, 0, 0.07) 50%,
-      transparent 58%
-    );
-  }
-}
-
-@media (min-width: 641px) and (max-width: 900px) { /* mid tablets */
-  .bg-arch-pattern::before {
-    top: -40%;
-    height: 170%;
-    width: 140%;
-  }
-}
-
 .bg-arch-pattern > * {
   position: relative;
-  z-index: 2;
+  z-index: 2; /* keep hero content above the arch background */
 }
 
 /* Hero content alignment tweaks so text sits within the visual center of the ring */
