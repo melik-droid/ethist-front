@@ -3,6 +3,7 @@ import { useGetEmotions } from "../hooks/useContract";
 import { useAccount } from "wagmi";
 import SiteNavbar from "../components/SiteNavbar";
 import PortfolioSparkline from "../components/PortfolioSparkline";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 interface EmotionRecord {
   emotion: string;
@@ -17,6 +18,7 @@ interface RoadmapItemProps {
 
 const JournalPage: React.FC = () => {
   const { address } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const [queryUserId, setQueryUserId] = useState<string | undefined>(undefined);
   const [hoveredEmotion, setHoveredEmotion] = useState<EmotionRecord | null>(
     null
@@ -313,9 +315,10 @@ const JournalPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white">
       <SiteNavbar />
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-8">
-        {/* Controls (no wallet address shown) */}
-        {/* <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-4 sm:p-6 mb-6 sm:mb-8">
+      {queryUserId ? (
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-8">
+          {/* Controls (no wallet address shown) */}
+          {/* <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-4 sm:p-6 mb-6 sm:mb-8">
           <div className="flex items-center justify-between">
             <div className="text-gray-300 text-sm">
               You're viewing your journey
@@ -330,8 +333,7 @@ const JournalPage: React.FC = () => {
           </div>
         </div> */}
 
-        {/* Results */}
-        {queryUserId && (
+          {/* Results */}
           <div className="space-y-8">
             {/* Portfolio Trend */}
             <div className="bg-[#151515] border border-[#242424] rounded-2xl p-6 shadow-xl">
@@ -455,408 +457,443 @@ const JournalPage: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+        </div>
+      ) : (
+        <section className="relative px-6 py-16 bg-[#0E0E0E] border-t border-b border-[#1A1A1A] flex flex-col justify-center items-center h-max">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+            {/* Left: copy + CTA (left-aligned, distinct from Home) */}
+            <div className="space-y-6 text-left">
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                Your Journal
+              </h1>
+              <p className="text-[#A0A0A0] leading-relaxed text-base md:text-lg">
+                Connect your wallet to unlock your private journal timeline and
+                see how your portfolio and emotions evolve together.
+              </p>
+              <ul className="space-y-2 text-sm text-[#C7C7C7]">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#D4FF00]">•</span> Portfolio trend
+                  snapshot
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#D4FF00]">•</span> Emotion-tagged
+                  entries
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#D4FF00]">•</span> Exchange summaries &
+                  top holdings
+                </li>
+              </ul>
+              <div className="pt-2">
+                <button
+                  onClick={() => openConnectModal?.()}
+                  className="bg-[#D4FF00] text-[#0D0D0D] px-7 py-3 rounded-lg text-base font-semibold hover:bg-[#BEF264] transition-colors duration-200 shadow-md focus-visible:outline-none glow-hover"
+                >
+                  Connect Wallet
+                </button>
+              </div>
+            </div>
 
-        {/* Emotion Detail Modal */}
-        {selectedEmotion && (
-          <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={() => setSelectedEmotion(null)}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div
-              className="relative bg-[#151515] border border-[#242424] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close button */}
-              <button
-                aria-label="Close"
-                onClick={() => setSelectedEmotion(null)}
-                className="absolute top-3 right-3 h-9 w-9 rounded-lg bg-[#111] border border-[#2A2A2A] text-[#E0E0E0] hover:bg-[#1A1A1A] hover:text-white transition-colors"
-              >
-                ✕
-              </button>
-              <div className="text-center">
-                {(() => {
-                  const parsed = parseEmotionJson(selectedEmotion.emotion);
-                  const displayTitle =
-                    parsed?.data?.emotions || selectedEmotion.emotion;
-                  return (
-                    <h3 className="text-2xl font-bold text-white capitalize mb-2 tracking-tight">
-                      {displayTitle}
-                    </h3>
-                  );
-                })()}
-                <p className="text-[#A0A0A0] mb-6">
-                  {formatTimestamp(selectedEmotion.timestamp)}
-                </p>
-                {/* JSON details if present */}
-                {(() => {
-                  const parsed = parseEmotionJson(selectedEmotion.emotion);
-                  if (!parsed) return null;
-                  const d = parsed.data || {};
-                  return (
-                    <div className="text-left bg-[#151515] border border-[#242424] rounded-xl p-4 mb-6 shadow-inner">
-                      <h4 className="text-white font-semibold mb-3 tracking-tight">
-                        Details
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                        {d.date && (
-                          <div className="text-[#E0E0E0]">
-                            <span className="text-[#A0A0A0]">Date:</span>{" "}
-                            {new Date(d.date).toLocaleString()}
-                          </div>
-                        )}
-                        {d.market && (
-                          <div className="text-[#E0E0E0]">
-                            <span className="text-[#A0A0A0]">Market:</span>{" "}
-                            {d.market}
-                          </div>
-                        )}
-                        {d.mistakes && (
-                          <div className="text-[#E0E0E0]">
-                            <span className="text-[#A0A0A0]">Mistakes:</span>{" "}
-                            {d.mistakes}
-                          </div>
-                        )}
-                        {d.lessons && (
-                          <div className="text-[#E0E0E0]">
-                            <span className="text-[#A0A0A0]">Lessons:</span>{" "}
-                            {d.lessons}
-                          </div>
-                        )}
-                        {Array.isArray(d.tags) && d.tags.length > 0 && (
-                          <div className="text-[#E0E0E0]">
-                            <span className="text-[#A0A0A0]">Tags:</span>{" "}
-                            {d.tags.join(", ")}
-                          </div>
-                        )}
-                      </div>
-
-                      {(() => {
-                        // Exchange snapshot (flexible parsing)
-                        const ex = isRecord(d.exchangeData)
-                          ? d.exchangeData
-                          : undefined;
-                        const combinedSummaryUnknown = getKey(
-                          ex,
-                          "combinedSummary"
-                        );
-                        const combinedSummary = isRecord(combinedSummaryUnknown)
-                          ? (combinedSummaryUnknown as Record<string, unknown>)
-                          : undefined;
-                        const exSummaryUnknown = getKey(ex, "summary");
-                        const summary = combinedSummary
-                          ? combinedSummary
-                          : isRecord(exSummaryUnknown)
-                          ? (exSummaryUnknown as Record<string, unknown>)
-                          : isRecord(d.summary)
-                          ? d.summary
-                          : undefined;
-                        const exHoldings = getKey(ex, "holdings");
-                        const csTopHoldings =
-                          combinedSummary &&
-                          Array.isArray(
-                            getKey(combinedSummary, "topCombinedHoldings")
-                          )
-                            ? (getKey(
-                                combinedSummary,
-                                "topCombinedHoldings"
-                              ) as unknown[])
-                            : undefined;
-                        const holdings: unknown[] | undefined = Array.isArray(
-                          csTopHoldings
-                        )
-                          ? csTopHoldings
-                          : Array.isArray(exHoldings)
-                          ? (exHoldings as unknown[])
-                          : Array.isArray(d.assets)
-                          ? d.assets
-                          : undefined;
-                        const exPositions = getKey(ex, "positions");
-                        const positions: unknown[] | undefined = Array.isArray(
-                          exPositions
-                        )
-                          ? (exPositions as unknown[])
-                          : Array.isArray(d.positions)
-                          ? d.positions
-                          : undefined;
-                        const exchangesUnknown = getKey(ex, "exchanges");
-                        const exchangesArr:
-                          | Array<Record<string, unknown>>
-                          | undefined = Array.isArray(exchangesUnknown)
-                          ? (exchangesUnknown.filter((it) =>
-                              isRecord(it)
-                            ) as Array<Record<string, unknown>>)
-                          : undefined;
-
-                        if (!ex && !summary && !holdings && !positions)
-                          return null;
-                        return (
-                          <div className="mt-4 border-t border-[#242424] pt-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h5 className="text-white font-semibold tracking-tight">
-                                Portfolio Snapshot
-                              </h5>
-                              {summary &&
-                                (() => {
-                                  const total = getKey(
-                                    summary as Record<string, unknown>,
-                                    "totalUSDT"
-                                  );
-                                  if (
-                                    typeof total === "number" ||
-                                    (typeof total === "string" && total)
-                                  ) {
-                                    const num =
-                                      typeof total === "number"
-                                        ? total
-                                        : Number(total);
-                                    if (!Number.isNaN(num)) {
-                                      return (
-                                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#111] border border-[#2A2A2A] text-[#E0E0E0]">
-                                          Total $
-                                          {num.toLocaleString(undefined, {
-                                            maximumFractionDigits: 2,
-                                          })}
-                                        </span>
-                                      );
-                                    }
-                                  }
-                                  return null;
-                                })()}
-                            </div>
-
-                            {summary && (
-                              <div className="mb-4">
-                                <div className="text-[#A0A0A0] text-sm mb-2">
-                                  Summary
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                  {(() => {
-                                    const keys = [
-                                      "exchangesTotalUSDT",
-                                      "walletUSDT",
-                                      "totalUSDT",
-                                      "totalPositions",
-                                      "totalUnrealizedPnl",
-                                    ];
-                                    return keys
-                                      .map(
-                                        (k) =>
-                                          [
-                                            k,
-                                            getKey(
-                                              summary as Record<
-                                                string,
-                                                unknown
-                                              >,
-                                              k
-                                            ),
-                                          ] as const
-                                      )
-                                      .filter(
-                                        ([, v]) =>
-                                          typeof v === "string" ||
-                                          typeof v === "number"
-                                      )
-                                      .map(([k, v]) => (
-                                        <div key={k} className="text-[#E0E0E0]">
-                                          <span className="text-[#A0A0A0] capitalize">
-                                            {k}:
-                                          </span>{" "}
-                                          {k.toLowerCase().includes("usdt")
-                                            ? `$${Number(v).toLocaleString(
-                                                undefined,
-                                                { maximumFractionDigits: 2 }
-                                              )}`
-                                            : String(v)}
-                                        </div>
-                                      ));
-                                  })()}
-                                </div>
-                              </div>
-                            )}
-
-                            {exchangesArr && exchangesArr.length > 0 && (
-                              <div className="mb-4">
-                                <div className="text-[#A0A0A0] text-sm mb-2">
-                                  Exchanges
-                                </div>
-                                <ul className="space-y-1 text-sm">
-                                  {exchangesArr.slice(0, 4).map((exi, i) => {
-                                    const name =
-                                      pickStr(exi, ["exchange"]) || `#${i + 1}`;
-                                    const total =
-                                      pickNum(exi, ["totalUSDT"]) || undefined;
-                                    return (
-                                      <li key={i} className="text-[#E0E0E0]">
-                                        <span className="text-white font-medium">
-                                          {name}
-                                        </span>
-                                        {total && (
-                                          <span className="text-[#A0A0A0]">
-                                            {" "}
-                                            • $
-                                            {Number(total).toLocaleString(
-                                              undefined,
-                                              { maximumFractionDigits: 2 }
-                                            )}
-                                          </span>
-                                        )}
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                              </div>
-                            )}
-
-                            {holdings && holdings.length > 0 && (
-                              <div className="mb-2">
-                                <div className="text-[#A0A0A0] text-sm mb-2">
-                                  Top Holdings
-                                </div>
-                                <ul className="space-y-1">
-                                  {holdings.slice(0, 5).map((h, idx) => {
-                                    if (!isRecord(h)) return null;
-                                    const symbol =
-                                      pickStr(h, [
-                                        "symbol",
-                                        "ticker",
-                                        "coin",
-                                        "asset",
-                                        "name",
-                                      ]) || `#${idx + 1}`;
-                                    const amount = pickNum(h, [
-                                      "amount",
-                                      "qty",
-                                      "quantity",
-                                      "size",
-                                    ]);
-                                    const value = pickNum(h, [
-                                      "value",
-                                      "usdValue",
-                                      "balanceUsd",
-                                      "worth",
-                                      "estUSDT",
-                                    ]);
-                                    return (
-                                      <li
-                                        key={idx}
-                                        className="text-[#E0E0E0] text-sm"
-                                      >
-                                        <span className="text-white font-medium">
-                                          {symbol}
-                                        </span>
-                                        {amount && (
-                                          <span className="text-[#A0A0A0]">
-                                            {" "}
-                                            • {Number(amount).toLocaleString()}
-                                          </span>
-                                        )}
-                                        {value && (
-                                          <span className="text-[#A0A0A0]">
-                                            {" "}
-                                            • $
-                                            {Number(value).toLocaleString(
-                                              undefined,
-                                              { maximumFractionDigits: 2 }
-                                            )}
-                                          </span>
-                                        )}
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                              </div>
-                            )}
-
-                            {(() => {
-                              const totalPositions =
-                                summary &&
-                                getKey(
-                                  summary as Record<string, unknown>,
-                                  "totalPositions"
-                                );
-                              const count =
-                                typeof totalPositions === "number"
-                                  ? totalPositions
-                                  : positions?.length;
-                              return typeof count === "number" ? (
-                                <div className="text-[#A0A0A0] text-xs">
-                                  Positions: {count}
-                                </div>
-                              ) : null;
-                            })()}
-                          </div>
-                        );
-                      })()}
-                      {/* Raw JSON for completeness */}
-                      <details className="mt-3">
-                        <summary className="cursor-pointer text-[#A0A0A0]">
-                          View raw JSON
-                        </summary>
-                        <pre className="mt-2 text-xs text-[#E0E0E0] bg-[#0F0F0F] border border-[#242424] p-3 rounded-lg overflow-auto">
-                          {JSON.stringify(parsed.root, null, 2)}
-                        </pre>
-                      </details>
+            {/* Right: timeline preview skeleton (distinct visual) */}
+            <div className="relative rounded-2xl border border-[#242424] bg-[#141414] p-6 shadow-xl overflow-hidden">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-[#D4FF00]/5 via-transparent to-[#D4FF00]/10" />
+              {/* Vertical line */}
+              <div className="absolute left-6 top-6 bottom-6 w-1 bg-[#2A2A2A] rounded-full" />
+              {/* Items */}
+              <div className="space-y-6">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="relative pl-12">
+                    {/* Node */}
+                    <div className="absolute left-6 top-2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-[#D4FF00] to-[#BEF264] ring-2 ring-[#0E0E0E]" />
+                    {/* Card */}
+                    <div className="rounded-xl border border-[#2A2A2A] bg-[#0F0F0F] p-4 animate-pulse">
+                      <div className="h-4 w-40 bg-[#1C1C1C] rounded mb-3" />
+                      <div className="h-3 w-56 bg-[#1C1C1C] rounded mb-2" />
+                      <div className="h-3 w-32 bg-[#1C1C1C] rounded" />
                     </div>
-                  );
-                })()}
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => setSelectedEmotion(null)}
-                    className="bg-[#D4FF00] text-[#0D0D0D] px-6 py-3 rounded-xl hover:bg-[#BEF264] transition-all duration-200 font-semibold shadow-md"
-                  >
-                    Close
-                  </button>
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </section>
+      )}
 
-        {/* Hover tooltip */}
-        {hoveredEmotion &&
-          (() => {
-            const parsed = parseEmotionJson(hoveredEmotion.emotion);
-            const title =
-              parsed?.data?.emotions &&
-              typeof parsed.data.emotions === "string" &&
-              parsed.data.emotions.trim()
-                ? (parsed.data.emotions as string)
-                : "Entry";
-            return (
-              <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-[#111] border border-[#2A2A2A] text-white px-4 py-2 rounded-lg shadow-xl z-40 pointer-events-none">
-                <p className="text-sm">
-                  {title} • {formatTimestamp(hoveredEmotion.timestamp)}
-                </p>
-              </div>
-            );
-          })()}
+      {/* Emotion Detail Modal */}
+      {selectedEmotion && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          onClick={() => setSelectedEmotion(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="relative bg-[#151515] border border-[#242424] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              aria-label="Close"
+              onClick={() => setSelectedEmotion(null)}
+              className="absolute top-3 right-3 h-9 w-9 rounded-lg bg-[#111] border border-[#2A2A2A] text-[#E0E0E0] hover:bg-[#1A1A1A] hover:text-white transition-colors"
+            >
+              ✕
+            </button>
+            <div className="text-center">
+              {(() => {
+                const parsed = parseEmotionJson(selectedEmotion.emotion);
+                const displayTitle =
+                  parsed?.data?.emotions || selectedEmotion.emotion;
+                return (
+                  <h3 className="text-2xl font-bold text-white capitalize mb-2 tracking-tight">
+                    {displayTitle}
+                  </h3>
+                );
+              })()}
+              <p className="text-[#A0A0A0] mb-6">
+                {formatTimestamp(selectedEmotion.timestamp)}
+              </p>
+              {/* JSON details if present */}
+              {(() => {
+                const parsed = parseEmotionJson(selectedEmotion.emotion);
+                if (!parsed) return null;
+                const d = parsed.data || {};
+                return (
+                  <div className="text-left bg-[#151515] border border-[#242424] rounded-xl p-4 mb-6 shadow-inner">
+                    <h4 className="text-white font-semibold mb-3 tracking-tight">
+                      Details
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      {d.date && (
+                        <div className="text-[#E0E0E0]">
+                          <span className="text-[#A0A0A0]">Date:</span>{" "}
+                          {new Date(d.date).toLocaleString()}
+                        </div>
+                      )}
+                      {d.market && (
+                        <div className="text-[#E0E0E0]">
+                          <span className="text-[#A0A0A0]">Market:</span>{" "}
+                          {d.market}
+                        </div>
+                      )}
+                      {d.mistakes && (
+                        <div className="text-[#E0E0E0]">
+                          <span className="text-[#A0A0A0]">Mistakes:</span>{" "}
+                          {d.mistakes}
+                        </div>
+                      )}
+                      {d.lessons && (
+                        <div className="text-[#E0E0E0]">
+                          <span className="text-[#A0A0A0]">Lessons:</span>{" "}
+                          {d.lessons}
+                        </div>
+                      )}
+                      {Array.isArray(d.tags) && d.tags.length > 0 && (
+                        <div className="text-[#E0E0E0]">
+                          <span className="text-[#A0A0A0]">Tags:</span>{" "}
+                          {d.tags.join(", ")}
+                        </div>
+                      )}
+                    </div>
 
-        {/* Instructions */}
-        {!queryUserId && (
-          <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 sm:p-8 text-center">
-            <div className="text-6xl mb-4">🌟</div>
-            <h3 className="text-xl font-semibold text-white mb-2">
-              Begin Your Crypto Journey
-            </h3>
-            <p className="text-gray-400 mb-6">
-              Connect your wallet to view your crypto journey timeline.
-            </p>
-            {!address && (
-              <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-4">
-                <p className="text-sm text-gray-300">
-                  💡 Connect your wallet to track emotions during your crypto
-                  journey
-                </p>
+                    {(() => {
+                      // Exchange snapshot (flexible parsing)
+                      const ex = isRecord(d.exchangeData)
+                        ? d.exchangeData
+                        : undefined;
+                      const combinedSummaryUnknown = getKey(
+                        ex,
+                        "combinedSummary"
+                      );
+                      const combinedSummary = isRecord(combinedSummaryUnknown)
+                        ? (combinedSummaryUnknown as Record<string, unknown>)
+                        : undefined;
+                      const exSummaryUnknown = getKey(ex, "summary");
+                      const summary = combinedSummary
+                        ? combinedSummary
+                        : isRecord(exSummaryUnknown)
+                        ? (exSummaryUnknown as Record<string, unknown>)
+                        : isRecord(d.summary)
+                        ? d.summary
+                        : undefined;
+                      const exHoldings = getKey(ex, "holdings");
+                      const csTopHoldings =
+                        combinedSummary &&
+                        Array.isArray(
+                          getKey(combinedSummary, "topCombinedHoldings")
+                        )
+                          ? (getKey(
+                              combinedSummary,
+                              "topCombinedHoldings"
+                            ) as unknown[])
+                          : undefined;
+                      const holdings: unknown[] | undefined = Array.isArray(
+                        csTopHoldings
+                      )
+                        ? csTopHoldings
+                        : Array.isArray(exHoldings)
+                        ? (exHoldings as unknown[])
+                        : Array.isArray(d.assets)
+                        ? d.assets
+                        : undefined;
+                      const exPositions = getKey(ex, "positions");
+                      const positions: unknown[] | undefined = Array.isArray(
+                        exPositions
+                      )
+                        ? (exPositions as unknown[])
+                        : Array.isArray(d.positions)
+                        ? d.positions
+                        : undefined;
+                      const exchangesUnknown = getKey(ex, "exchanges");
+                      const exchangesArr:
+                        | Array<Record<string, unknown>>
+                        | undefined = Array.isArray(exchangesUnknown)
+                        ? (exchangesUnknown.filter((it) =>
+                            isRecord(it)
+                          ) as Array<Record<string, unknown>>)
+                        : undefined;
+
+                      if (!ex && !summary && !holdings && !positions)
+                        return null;
+                      return (
+                        <div className="mt-4 border-t border-[#242424] pt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="text-white font-semibold tracking-tight">
+                              Portfolio Snapshot
+                            </h5>
+                            {summary &&
+                              (() => {
+                                const total = getKey(
+                                  summary as Record<string, unknown>,
+                                  "totalUSDT"
+                                );
+                                if (
+                                  typeof total === "number" ||
+                                  (typeof total === "string" && total)
+                                ) {
+                                  const num =
+                                    typeof total === "number"
+                                      ? total
+                                      : Number(total);
+                                  if (!Number.isNaN(num)) {
+                                    return (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#111] border border-[#2A2A2A] text-[#E0E0E0]">
+                                        Total $
+                                        {num.toLocaleString(undefined, {
+                                          maximumFractionDigits: 2,
+                                        })}
+                                      </span>
+                                    );
+                                  }
+                                }
+                                return null;
+                              })()}
+                          </div>
+
+                          {summary && (
+                            <div className="mb-4">
+                              <div className="text-[#A0A0A0] text-sm mb-2">
+                                Summary
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                {(() => {
+                                  const keys = [
+                                    "exchangesTotalUSDT",
+                                    "walletUSDT",
+                                    "totalUSDT",
+                                    "totalPositions",
+                                    "totalUnrealizedPnl",
+                                  ];
+                                  return keys
+                                    .map(
+                                      (k) =>
+                                        [
+                                          k,
+                                          getKey(
+                                            summary as Record<string, unknown>,
+                                            k
+                                          ),
+                                        ] as const
+                                    )
+                                    .filter(
+                                      ([, v]) =>
+                                        typeof v === "string" ||
+                                        typeof v === "number"
+                                    )
+                                    .map(([k, v]) => (
+                                      <div key={k} className="text-[#E0E0E0]">
+                                        <span className="text-[#A0A0A0] capitalize">
+                                          {k}:
+                                        </span>{" "}
+                                        {k.toLowerCase().includes("usdt")
+                                          ? `$${Number(v).toLocaleString(
+                                              undefined,
+                                              { maximumFractionDigits: 2 }
+                                            )}`
+                                          : String(v)}
+                                      </div>
+                                    ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
+
+                          {exchangesArr && exchangesArr.length > 0 && (
+                            <div className="mb-4">
+                              <div className="text-[#A0A0A0] text-sm mb-2">
+                                Exchanges
+                              </div>
+                              <ul className="space-y-1 text-sm">
+                                {exchangesArr.slice(0, 4).map((exi, i) => {
+                                  const name =
+                                    pickStr(exi, ["exchange"]) || `#${i + 1}`;
+                                  const total =
+                                    pickNum(exi, ["totalUSDT"]) || undefined;
+                                  return (
+                                    <li key={i} className="text-[#E0E0E0]">
+                                      <span className="text-white font-medium">
+                                        {name}
+                                      </span>
+                                      {total && (
+                                        <span className="text-[#A0A0A0]">
+                                          {" "}
+                                          • $
+                                          {Number(total).toLocaleString(
+                                            undefined,
+                                            { maximumFractionDigits: 2 }
+                                          )}
+                                        </span>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          )}
+
+                          {holdings && holdings.length > 0 && (
+                            <div className="mb-2">
+                              <div className="text-[#A0A0A0] text-sm mb-2">
+                                Top Holdings
+                              </div>
+                              <ul className="space-y-1">
+                                {holdings.slice(0, 5).map((h, idx) => {
+                                  if (!isRecord(h)) return null;
+                                  const symbol =
+                                    pickStr(h, [
+                                      "symbol",
+                                      "ticker",
+                                      "coin",
+                                      "asset",
+                                      "name",
+                                    ]) || `#${idx + 1}`;
+                                  const amount = pickNum(h, [
+                                    "amount",
+                                    "qty",
+                                    "quantity",
+                                    "size",
+                                  ]);
+                                  const value = pickNum(h, [
+                                    "value",
+                                    "usdValue",
+                                    "balanceUsd",
+                                    "worth",
+                                    "estUSDT",
+                                  ]);
+                                  return (
+                                    <li
+                                      key={idx}
+                                      className="text-[#E0E0E0] text-sm"
+                                    >
+                                      <span className="text-white font-medium">
+                                        {symbol}
+                                      </span>
+                                      {amount && (
+                                        <span className="text-[#A0A0A0]">
+                                          {" "}
+                                          • {Number(amount).toLocaleString()}
+                                        </span>
+                                      )}
+                                      {value && (
+                                        <span className="text-[#A0A0A0]">
+                                          {" "}
+                                          • $
+                                          {Number(value).toLocaleString(
+                                            undefined,
+                                            { maximumFractionDigits: 2 }
+                                          )}
+                                        </span>
+                                      )}
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          )}
+
+                          {(() => {
+                            const totalPositions =
+                              summary &&
+                              getKey(
+                                summary as Record<string, unknown>,
+                                "totalPositions"
+                              );
+                            const count =
+                              typeof totalPositions === "number"
+                                ? totalPositions
+                                : positions?.length;
+                            return typeof count === "number" ? (
+                              <div className="text-[#A0A0A0] text-xs">
+                                Positions: {count}
+                              </div>
+                            ) : null;
+                          })()}
+                        </div>
+                      );
+                    })()}
+                    {/* Raw JSON for completeness */}
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-[#A0A0A0]">
+                        View raw JSON
+                      </summary>
+                      <pre className="mt-2 text-xs text-[#E0E0E0] bg-[#0F0F0F] border border-[#242424] p-3 rounded-lg overflow-auto">
+                        {JSON.stringify(parsed.root, null, 2)}
+                      </pre>
+                    </details>
+                  </div>
+                );
+              })()}
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setSelectedEmotion(null)}
+                  className="bg-[#D4FF00] text-[#0D0D0D] px-6 py-3 rounded-xl hover:bg-[#BEF264] transition-all duration-200 font-semibold shadow-md"
+                >
+                  Close
+                </button>
               </div>
-            )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Hover tooltip */}
+      {hoveredEmotion &&
+        (() => {
+          const parsed = parseEmotionJson(hoveredEmotion.emotion);
+          const title =
+            parsed?.data?.emotions &&
+            typeof parsed.data.emotions === "string" &&
+            parsed.data.emotions.trim()
+              ? (parsed.data.emotions as string)
+              : "Entry";
+          return (
+            <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-[#111] border border-[#2A2A2A] text-white px-4 py-2 rounded-lg shadow-xl z-40 pointer-events-none">
+              <p className="text-sm">
+                {title} • {formatTimestamp(hoveredEmotion.timestamp)}
+              </p>
+            </div>
+          );
+        })()}
     </div>
   );
 };

@@ -7,14 +7,6 @@
   --accent-green: #D4FF00;
   --text-primary: #FFFFFF;
   --text-secondary: #A0A0A0;
-
-  /* RainbowKit theme overrides */
-  --rk-colors-accentColor: var(--accent-green);
-  --rk-colors-accentColorForeground: #0D0D0D;
-  --rk-radii-connectButton: 12px;
-  --rk-radii-menuButton: 12px;
-  --rk-radii-modal: 16px;
-  --rk-radii-modalMobile: 20px;
 }
 
 /* Global Styles */
@@ -89,22 +81,6 @@ html {
   overflow: hidden;
 }
 
-/* RainbowKit popup/button border accents */
-/* Modal container and inner cards */
-.rainbowkit-modal, [class*="RainbowKitModal"] {
-  --local-border-color: var(--accent-green);
-}
-.rainbowkit-modal [class*="__card"],
-[class*="RainbowKitModal"] [class*="__card"],
-.rainbowkit-modal [class*="__button"],
-[class*="RainbowKitModal"] [class*="__button"] {
-  border-color: var(--accent-green) !important;
-}
-/* Connect button variants in modal */
-[class*="RainbowKitButton"] {
-  border-color: var(--accent-green) !important;
-}
-
 .bg-arch-pattern::before {
   content: '';
   position: absolute;
@@ -143,6 +119,30 @@ html {
     margin-top: 0;
     padding-top: 4vh; /* soft offset so text merkezde kalır */
   }
+}
+
+/* Home page circle animations */
+.spin-slow {
+  animation: spinSlow 12s linear infinite;
+}
+
+.ripple {
+  animation: ripple 2.4s ease-out infinite;
+}
+
+.ripple-delay {
+  animation: ripple 2.4s ease-out 1.2s infinite;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  60% { opacity: 0.25; }
+  100% { transform: scale(2.2); opacity: 0; }
 }
 
 @media (min-width: 641px) and (max-width: 900px) {

@@ -1,7 +1,9 @@
 import SiteNavbar from "../components/SiteNavbar";
+import { useState } from "react";
 
 const HomePage: React.FC = () => {
-  // ...
+  // Video loading transition state
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white">
@@ -10,6 +12,19 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <section className="bg-arch-pattern min-h-screen flex items-center justify-center px-6 py-20">
         <div className="max-w-4xl mx-auto text-center hero-content">
+          {/* Decorative animated circle behind hero text */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center -z-10"
+          >
+            <div className="relative">
+              {/* slow rotating ring */}
+              <div className="w-56 h-56 md:w-80 md:h-80 rounded-full border border-[#D4FF00]/25 opacity-60 spin-slow" />
+              {/* subtle expanding ripples */}
+              <div className="absolute inset-0 rounded-full border border-[#D4FF00]/15 ripple" />
+              <div className="absolute inset-0 rounded-full border border-[#D4FF00]/10 ripple-delay" />
+            </div>
+          </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight tracking-tight">
             Your Balance
             <br />
@@ -77,7 +92,12 @@ const HomePage: React.FC = () => {
           </div>
           {/* Video Player */}
           <div className="relative aspect-video rounded-2xl overflow-hidden bg-[#141414] border border-[#1F1F1F] shadow-xl">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+            {/* Placeholder while loading */}
+            <div
+              className={`absolute inset-0 flex items-center justify-center select-none transition-opacity duration-500 ${
+                videoLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+              }`}
+            >
               <div className="w-24 h-24 rounded-full bg-[#D4FF00]/10 border border-[#D4FF00]/30 flex items-center justify-center animate-pulse">
                 <div className="w-14 h-14 rounded-full bg-[#D4FF00] flex items-center justify-center shadow-lg">
                   <svg
@@ -92,16 +112,27 @@ const HomePage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {/* Placeholder overlay */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#D4FF00]/5 via-transparent to-[#D4FF00]/10" />
-            {/* Replace iframe source when real video is ready */}
-            <iframe
-              className="w-full h-full opacity-0" /* hidden until real video provided */
-              src=""
-              title="Racfella Demo Video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#D4FF00]/5 via-transparent to-[#D4FF00]/10 pointer-events-none" />
+            {/* HTML5 video (place file at /public/intro.mp4) */}
+            <video
+              className={`w-full h-full object-cover transition-opacity duration-700 ${
+                videoLoaded ? "opacity-100" : "opacity-0"
+              }`}
+              playsInline
+              autoPlay
+              muted
+              loop
+              controls
+              onLoadedData={() => setVideoLoaded(true)}
+              aria-label="Racfella Introduction Video"
+            >
+              <source src="/Intro.mp4" type="video/mp4" />
+              <source
+                src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+                type="video/mp4"
+              />
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       </section>
@@ -115,9 +146,10 @@ const HomePage: React.FC = () => {
           <div className="lg:col-span-1 space-y-6">
             <h2 className="text-3xl font-bold tracking-tight">Why Racfella?</h2>
             <p className="text-[#A0A0A0] leading-relaxed text-base">
-              Racfella helps you center your mind when everything feels noisy. A
-              privacy-first, emotion-aware companion designed to respond
-              instantly and adapt to your emotional state.
+              When noise overwhelms, Rac’fella restores signal. A privacy-first,
+              emotion-intelligent companion built for traders who face chaos
+              daily. Not just another Consigliere; a confidant that stabilizes
+              your state before you even ask 😎
             </p>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
@@ -145,29 +177,40 @@ const HomePage: React.FC = () => {
             <div className="p-6 rounded-2xl bg-[#151515] border border-[#242424] hover:border-[#2F2F2F] transition-colors duration-200">
               <h3 className="font-semibold text-lg mb-2">Instant Guidance</h3>
               <p className="text-sm text-[#A0A0A0] leading-relaxed">
-                Get structured calming sequences when your mind
-                spirals—breathing cues, reframing steps and grounding anchors.
+                Rapid stabilization when spirals hit. Grounding sequences
+                crafted from cognitive science: breathing anchors, reframing
+                cues, calm prompts. Precision-designed to intercept volatility
+                so you recover seconds, not hours. Rac’fella mirrors your
+                thinking with CBT logic, Socratic cues, and Stoic calm guiding
+                without judging.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-[#151515] border border-[#242424] hover:border-[#2F2F2F] transition-colors duration-200">
               <h3 className="font-semibold text-lg mb-2">Emotion Tracking</h3>
               <p className="text-sm text-[#A0A0A0] leading-relaxed">
-                Record and later review your emotional spikes to discover
-                triggers & recovery patterns discreetly.
+                Your invisible journal. Track emotional spikes without exposure,
+                surface hidden triggers, map recovery patterns. A discreet
+                mirror of your mind helping you master what once mastered you.
+                Every spike leaves a trace. Rac’fella maps emotional volatility
+                discreetly, turning chaos into patterns, and patterns into
+                resilience.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-[#151515] border border-[#242424] hover:border-[#2F2F2F] transition-colors duration-200">
               <h3 className="font-semibold text-lg mb-2">Privacy First</h3>
               <p className="text-sm text-[#A0A0A0] leading-relaxed">
-                No public identity layer. Your state is processed contextually
-                without invasive profiling.
+                No public identity. No invasive profiling. Your state exists
+                only in the moment you share it encrypted, transient, sovereign.
+                Rac’fella doesn’t remember you to own you; it forgets to protect
+                you. Your emotions never become someone else’s data
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-[#151515] border border-[#242424] hover:border-[#2F2F2F] transition-colors duration-200">
               <h3 className="font-semibold text-lg mb-2">Agentic Flow</h3>
               <p className="text-sm text-[#A0A0A0] leading-relaxed">
-                Racfella steers the interaction—asking, grounding and pacing
-                instead of passively echoing.
+                Not passive. Not reactive. Racf’fella steers conversations with
+                pacing, questions, and grounding guiding you out of loops, not
+                echoing them. The difference between a mirror and a mentor😎
               </p>
             </div>
           </div>

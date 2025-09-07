@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useRecordEmotion } from "../hooks/useContract";
 import SiteNavbar from "../components/SiteNavbar";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import RecordEntryOverlay from "../components/RecordEntryOverlay";
 
 // Define the expected API response type
 interface JournalData {
@@ -47,15 +49,22 @@ const hasData = (v: unknown): v is { data: unknown } =>
 
 const RecordPage: React.FC = () => {
   const { address } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const [emotion, setEmotion] = useState<string>("");
   const [lessons, setLessons] = useState<string>("");
   const [market, setMarket] = useState<string>("");
   const [mistakes, setMistakes] = useState<string>("");
   const [tags, setTags] = useState<string>("");
   const [apiData, setApiData] = useState<unknown | null>(null);
-  const [apiLoading, setApiLoading] = useState<boolean>(true);
+  const [apiLoading, setApiLoading] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [urlVariable, setUrlVariable] = useState<string | null>(null);
+  // Overlay animation controls
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [overlayExiting, setOverlayExiting] = useState(false);
+  // Control flags
+  const [hasFetched, setHasFetched] = useState(false);
+  const [connectPrompted, setConnectPrompted] = useState(false);
   const {
     recordEmotion,
     data: txData,
@@ -64,36 +73,27 @@ const RecordPage: React.FC = () => {
     error,
   } = useRecordEmotion();
 
-  // Fetch data from API when component loads
+  // Parse URL parameter on mount
   useEffect(() => {
-    const fetchApiData = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const variable = urlParams.get("id");
+    console.log("Parsed URL variable:", variable);
+    setUrlVariable(variable);
+  }, []);
+
+  // Fetch function (memoized) that assumes preconditions checked
+  const performFetch = useCallback(
+    async (variable: string) => {
       try {
         setApiLoading(true);
         setApiError(null);
 
-        // Parse URL parameter: expect /record?id=<value>
-        const urlParams = new URLSearchParams(window.location.search);
-        const variable = urlParams.get("id");
+        // Show overlay while fetching
+        setShowOverlay(true);
 
-        // Console log the parsed variable
-        console.log("Parsed URL variable:", variable);
-        setUrlVariable(variable);
-
-        // Only make API call if variable is present
-        if (!variable) {
-          console.log("No URL variable found, skipping API call");
-          setApiLoading(false);
-          return;
-        }
-
-        // Ortama göre API base URL seçimi: production => tam domain, development => relative proxy
-        const apiBaseUrl = import.meta.env.PROD
-          ? "https://pc.tuguberk.dev/api/journal"
-          : "/api/journal";
-
-        // Build API URL with the variable
+        // Hardcoded API URL - no need for environment variable
+        const apiBaseUrl = "/api/journal";
         const finalApiUrl = `${apiBaseUrl}/${encodeURIComponent(variable)}`;
-
         console.log("Making API request to:", finalApiUrl);
 
         const response = await fetch(finalApiUrl);
@@ -102,14 +102,11 @@ const RecordPage: React.FC = () => {
             `API request failed: ${response.status} ${response.statusText}`
           );
         }
-
         const data = await response.json();
-
-        // Console log the API return value
         console.log("API Response Data:", data);
         setApiData(data);
 
-        // Immediate populate for reliability (in addition to apiData effect)
+        // Immediate populate for reliability
         const jdNow = parseJournalFromResponse(data);
         console.log("jdnow: " + JSON.stringify(jdNow));
         if (jdNow) {
@@ -119,13 +116,6 @@ const RecordPage: React.FC = () => {
             : typeof jdNow.tags === "string"
             ? jdNow.tags
             : "";
-          console.log("Setting form (immediate) from journalData:", {
-            emotion: emoNow,
-            lessons: jdNow.lessons ?? "",
-            market: jdNow.market ?? "",
-            mistakes: jdNow.mistakes ?? "",
-            tags: tagNow,
-          });
           setEmotion(emoNow);
           setLessons(jdNow.lessons ?? "");
           setMarket(jdNow.market ?? "");
@@ -139,11 +129,51 @@ const RecordPage: React.FC = () => {
         );
       } finally {
         setApiLoading(false);
+        setHasFetched(true);
       }
-    };
+    },
+    [setApiData]
+  );
 
-    fetchApiData();
-  }, []);
+  // Gate API call behind wallet connection
+  useEffect(() => {
+    if (!urlVariable) {
+      // No param, ensure states are reset
+      setApiLoading(false);
+      setShowOverlay(false);
+      return;
+    }
+    if (hasFetched) return;
+    if (!address) {
+      // Prompt wallet connect once
+      if (!connectPrompted && openConnectModal) {
+        setConnectPrompted(true);
+        openConnectModal();
+      }
+      return; // do not fetch until connected
+    }
+    // Connected and have param -> fetch
+    void performFetch(urlVariable);
+  }, [
+    urlVariable,
+    address,
+    openConnectModal,
+    connectPrompted,
+    hasFetched,
+    performFetch,
+  ]);
+
+  // When API completes (success or error), fade out overlay then unmount
+  useEffect(() => {
+    if (!showOverlay) return;
+    if (apiLoading) return;
+    setOverlayExiting(true);
+    const t = setTimeout(() => {
+      setShowOverlay(false);
+      setOverlayExiting(false);
+    }, 320); // keep in sync with overlay transition duration
+    return () => clearTimeout(t);
+  }, [apiLoading, showOverlay]);
 
   // Parse helper to extract JournalData from various shapes
   const parseJournalFromResponse = (
@@ -261,6 +291,8 @@ const RecordPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white">
       <SiteNavbar />
+      {/* Entry animation overlay: visible when entering with URL param; fades out on API completion */}
+      <RecordEntryOverlay show={showOverlay} exiting={overlayExiting} />
       <main className="max-w-3xl mx-auto px-6 py-10">
         <div className="bg-[#151515] border border-[#242424] rounded-2xl p-6 md:p-8 shadow-xl">
           <h1 className="text-2xl md:text-3xl font-bold mb-6 tracking-tight">

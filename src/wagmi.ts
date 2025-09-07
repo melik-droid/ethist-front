@@ -2,10 +2,17 @@ import { riseTestnetConfig, riseTestnet } from "rise-wallet";
 import { createConfig, http } from "wagmi";
 import { porto } from "porto/wagmi";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import { metaMaskWallet, walletConnectWallet, coinbaseWallet, injectedWallet } from "@rainbow-me/rainbowkit/wallets";
+import {
+  metaMaskWallet,
+  walletConnectWallet,
+  coinbaseWallet,
+  injectedWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 
 const appName = "Racfella";
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined;
+const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as
+  | string
+  | undefined;
 
 // Explicit wallet list with MetaMask (shows install CTA if missing), plus Coinbase and WalletConnect
 const connectors = connectorsForWallets(
