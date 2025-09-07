@@ -1,0 +1,35 @@
+services:
+  ethist:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_ENCRYPTION_KEY=${VITE_ENCRYPTION_KEY:?Set VITE_ENCRYPTION_KEY in your environment}
+    image: ethist-front:latest
+    container_name: ethist
+    restart: unless-stopped
+    expose:
+      - "4173" # internal port for 'serve'
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      # Router
+      - traefik.http.routers.ethist.rule=Host(`racfella.racfathers.io`)
+      - traefik.http.routers.ethist.entrypoints=websecure
+      - traefik.http.routers.ethist.tls=true
+      - traefik.http.routers.ethist.tls.certresolver=le
+      # Service (internal container port)
+      - traefik.http.services.ethist.loadbalancer.server.port=4173
+      # Middlewares
+      - traefik.http.middlewares.ethist-compress.compress=true
+      - traefik.http.routers.ethist.middlewares=ethist-compress
+    networks:
+      - proxy
+    environment:
+      # Note: This is also baked at build time via build args; keeping it here documents runtime expectation.
+      VITE_ENCRYPTION_KEY: "${VITE_ENCRYPTION_KEY}"
+
+networks:
+  proxy:
+    external: true
+    name: proxy
