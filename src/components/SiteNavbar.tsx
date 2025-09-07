@@ -57,8 +57,8 @@ const SiteNavbar: React.FC = () => {
 
         const baseBtn =
           variant === "desktop"
-            ? "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-[#2A2A2A] bg-[#111] hover:bg-[#1A1A1A] text-[#E0E0E0] transition-colors duration-200 shadow-inner focus-visible:outline-none"
-            : "w-full flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium border border-[#2A2A2A] bg-[#111] hover:bg-[#1A1A1A] text-[#E0E0E0] transition-colors duration-200 shadow-inner focus-visible:outline-none";
+            ? "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-[#D4FF00] bg-[#111] hover:bg-[#1A1A1A] text-[#E0E0E0] transition-colors duration-200 shadow-inner focus-visible:outline-none"
+            : "w-full flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium border border-[#D4FF00] bg-[#111] hover:bg-[#1A1A1A] text-[#E0E0E0] transition-colors duration-200 shadow-inner focus-visible:outline-none";
 
         if (!ready)
           return (

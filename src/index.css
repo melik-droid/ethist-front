@@ -7,6 +7,14 @@
   --accent-green: #D4FF00;
   --text-primary: #FFFFFF;
   --text-secondary: #A0A0A0;
+
+  /* RainbowKit theme overrides */
+  --rk-colors-accentColor: var(--accent-green);
+  --rk-colors-accentColorForeground: #0D0D0D;
+  --rk-radii-connectButton: 12px;
+  --rk-radii-menuButton: 12px;
+  --rk-radii-modal: 16px;
+  --rk-radii-modalMobile: 20px;
 }
 
 /* Global Styles */
@@ -79,6 +87,22 @@ html {
 .bg-arch-pattern {
   position: relative;
   overflow: hidden;
+}
+
+/* RainbowKit popup/button border accents */
+/* Modal container and inner cards */
+.rainbowkit-modal, [class*="RainbowKitModal"] {
+  --local-border-color: var(--accent-green);
+}
+.rainbowkit-modal [class*="__card"],
+[class*="RainbowKitModal"] [class*="__card"],
+.rainbowkit-modal [class*="__button"],
+[class*="RainbowKitModal"] [class*="__button"] {
+  border-color: var(--accent-green) !important;
+}
+/* Connect button variants in modal */
+[class*="RainbowKitButton"] {
+  border-color: var(--accent-green) !important;
 }
 
 .bg-arch-pattern::before {
