@@ -3,11 +3,7 @@ import "./index.css";
 import App from "./App.tsx";
 
 import "@rainbow-me/rainbowkit/styles.css";
-import {
-  RainbowKitProvider,
-  darkTheme,
-  midnightTheme,
-} from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import MoneyAvatar from "./components/MoneyAvatar";
 import { WagmiProvider } from "wagmi";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
