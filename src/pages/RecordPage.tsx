@@ -92,7 +92,9 @@ const RecordPage: React.FC = () => {
         setShowOverlay(true);
 
         // Hardcoded API URL - no need for environment variable
-        const apiBaseUrl = "/api/journal";
+        const apiBaseUrl = import.meta.env.PROD
+          ? "https://pc.tuguberk.dev/api/journal"
+          : "/api/journal";
         const finalApiUrl = `${apiBaseUrl}/${encodeURIComponent(variable)}`;
         console.log("Making API request to:", finalApiUrl);
 
