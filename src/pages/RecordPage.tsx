@@ -86,8 +86,10 @@ const RecordPage: React.FC = () => {
           return;
         }
 
-        // Hardcoded API URL - no need for environment variable
-        const apiBaseUrl = "/api/journal";
+        // Ortama göre API base URL seçimi: production => tam domain, development => relative proxy
+        const apiBaseUrl = import.meta.env.PROD
+          ? "https://pc.tuguberk.dev/api/journal"
+          : "/api/journal";
 
         // Build API URL with the variable
         const finalApiUrl = `${apiBaseUrl}/${encodeURIComponent(variable)}`;
