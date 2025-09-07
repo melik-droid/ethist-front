@@ -4,15 +4,13 @@ type Point = { t: number; v: number };
 
 interface Props {
   data: Point[]; // expects ascending by t
-  width?: number;
-  height?: number;
+  height?: number; // pixel height
   stroke?: string;
   fill?: string;
 }
 
 const PortfolioSparkline: React.FC<Props> = ({
   data,
-  width = 560,
   height = 140,
   stroke = "#D4FF00",
   fill = "rgba(212,255,0,0.08)",
@@ -23,9 +21,10 @@ const PortfolioSparkline: React.FC<Props> = ({
     );
   }
 
-  const padX = 8;
-  const padY = 8;
-  const w = Math.max(width, 60);
+  // Use a responsive SVG via viewBox; width scales to container (100%)
+  const padX = 20;
+  const padY = 12;
+  const w = 1000; // logical width units for viewBox
   const h = Math.max(height, 60);
 
   const vals = data.map((p) => p.v).filter((v) => Number.isFinite(v));
@@ -65,14 +64,21 @@ const PortfolioSparkline: React.FC<Props> = ({
           </span>
         </div>
       </div>
-      <svg width={w} height={h} className="block">
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        width="100%"
+        height={h}
+        className="block"
+        aria-label="Portfolio sparkline"
+        role="img"
+      >
         <defs>
           <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={fill} />
             <stop offset="100%" stopColor="transparent" />
           </linearGradient>
         </defs>
-        <rect x={0} y={0} width={w} height={h} rx={8} fill="#0D0D0D" />
+        {/* No inner background; use container background */}
         <path d={area} fill="url(#sparkFill)" />
         <path d={path} fill="none" stroke={stroke} strokeWidth={2} />
       </svg>

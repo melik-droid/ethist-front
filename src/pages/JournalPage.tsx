@@ -180,60 +180,64 @@ const JournalPage: React.FC = () => {
   }, [emotions]);
   const sortedDesc = [...sortedAsc].reverse();
 
-  // Compute a totalUSDT time series from decrypted records
+  // Compute a totalUSDT time series from decrypted records (default 0 when missing)
   const portfolioSeries = useMemo(() => {
     const points: { t: number; v: number }[] = [];
     for (const rec of sortedAsc) {
       const parsed = parseEmotionJson(rec.emotion);
-      if (!parsed) continue;
-      const d = parsed.data || {};
-      // compute total from exchangeData or summary
-      let total = 0;
-      const ex = isRecord(d.exchangeData) ? d.exchangeData : undefined;
-      const combined = isRecord(getKey(ex, "combinedSummary"))
-        ? (getKey(ex, "combinedSummary") as Record<string, unknown>)
-        : undefined;
-      const combinedTotal =
-        combined && typeof combined.totalUSDT === "number"
-          ? combined.totalUSDT
-          : combined &&
-            typeof combined.totalUSDT === "string" &&
-            !Number.isNaN(Number(combined.totalUSDT))
-          ? Number(combined.totalUSDT)
+      let value = 0;
+      if (parsed) {
+        const d = parsed.data || {};
+        let total: number | undefined;
+        const ex = isRecord(d.exchangeData) ? d.exchangeData : undefined;
+        const combined = isRecord(getKey(ex, "combinedSummary"))
+          ? (getKey(ex, "combinedSummary") as Record<string, unknown>)
           : undefined;
-
-      if (typeof combinedTotal === "number") {
-        total = combinedTotal;
-      } else {
-        // sum exchanges[].totalUSDT if present
-        const exchanges = getKey(ex, "exchanges");
-        if (Array.isArray(exchanges)) {
-          let sum = 0;
-          for (const it of exchanges) {
-            if (isRecord(it)) {
-              const v = it.totalUSDT;
-              if (typeof v === "number") sum += v;
-              else if (typeof v === "string" && !Number.isNaN(Number(v)))
-                sum += Number(v);
-            }
-          }
-          if (sum > 0) total = sum;
+        if (combined) {
+          const raw = (combined as Record<string, unknown>)["totalUSDT"];
+          if (typeof raw === "number") total = raw;
+          else if (
+            typeof raw === "string" &&
+            raw.trim() &&
+            !Number.isNaN(Number(raw))
+          )
+            total = Number(raw);
         }
+        if (total === undefined) {
+          const exchanges = getKey(ex, "exchanges");
+          if (Array.isArray(exchanges)) {
+            let sum = 0;
+            for (const it of exchanges) {
+              if (isRecord(it)) {
+                const v = (it as Record<string, unknown>)["totalUSDT"];
+                if (typeof v === "number") sum += v;
+                else if (
+                  typeof v === "string" &&
+                  v.trim() &&
+                  !Number.isNaN(Number(v))
+                )
+                  sum += Number(v);
+              }
+            }
+            total = sum;
+          }
+        }
+        if (total === undefined && isRecord(d.summary)) {
+          const v = (d.summary as Record<string, unknown>)["totalUSDT"];
+          if (typeof v === "number") total = v;
+          else if (
+            typeof v === "string" &&
+            v.trim() &&
+            !Number.isNaN(Number(v))
+          )
+            total = Number(v);
+        }
+        value = Number.isFinite(total as number)
+          ? Math.max(0, Number(total))
+          : 0;
       }
-
-      // fallback to summary.totalUSDT at root if available
-      if (!total && isRecord(d.summary)) {
-        const v = (d.summary as Record<string, unknown>)["totalUSDT"];
-        if (typeof v === "number") total = v;
-        else if (typeof v === "string" && !Number.isNaN(Number(v)))
-          total = Number(v);
-      }
-
-      if (Number.isFinite(total) && total > 0) {
-        points.push({ t: Number(rec.timestamp), v: total });
-      }
+      points.push({ t: Number(rec.timestamp), v: value });
     }
-    // Already in ascending order by timestamp due to sortedAsc loop
     return points;
   }, [sortedAsc, parseEmotionJson]);
 
@@ -242,7 +246,6 @@ const JournalPage: React.FC = () => {
     onHover,
     onClick,
   }) => {
-    // Parse JSON-based emotion string to derive display fields
     const parsed = parseEmotionJson(record.emotion);
     const d = parsed?.data || {};
     const title =
@@ -257,9 +260,9 @@ const JournalPage: React.FC = () => {
       Array.isArray(exs) &&
       exs.length > 0 &&
       isRecord(exs[0]) &&
-      typeof exs[0].exchange === "string"
+      typeof (exs[0] as Record<string, unknown>)["exchange"] === "string"
     ) {
-      exchangeLabel = exs[0].exchange as string;
+      exchangeLabel = (exs[0] as Record<string, unknown>)["exchange"] as string;
     }
     const tagList = Array.isArray(d.tags) ? d.tags.slice(0, 3) : [];
 
