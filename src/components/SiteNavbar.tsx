@@ -4,7 +4,7 @@ import React from "react";
 
 const SiteNavbar: React.FC = () => {
   return (
-  <nav className="sticky top-0 px-6 py-5 z-50 border-b border-[#1A1A1A]/70 bg-[#0D0D0D]/60 backdrop-blur-md supports-[backdrop-filter]:bg-[#0D0D0D]/50">
+    <nav className="sticky top-0 px-6 py-5 z-50 border-b border-[#1A1A1A]/70 bg-[#0D0D0D]/60 backdrop-blur-md supports-[backdrop-filter]:bg-[#0D0D0D]/50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="text-2xl font-bold tracking-tight">
           <Link to="/" className="hover:opacity-90 transition-opacity">

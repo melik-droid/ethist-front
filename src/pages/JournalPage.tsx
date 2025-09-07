@@ -377,8 +377,10 @@ const JournalPage: React.FC = () => {
 
               {sortedDesc.length > 0 && !isLoading && (
                 <div className="relative">
-                  {/* Shining roadmap line */}
-                  <div className="absolute left-1/2 top-0 bottom-0 w-1 transform -translate-x-1/2">
+                  {/* Mobile left-aligned line */}
+                  <div className="absolute left-4 top-0 bottom-0 w-1 bg-[#2A2A2A] rounded-full shadow-lg sm:hidden"></div>
+                  {/* Center line for sm+ */}
+                  <div className="absolute left-1/2 top-0 bottom-0 w-1 transform -translate-x-1/2 hidden sm:block">
                     <div className="w-full h-full bg-[#2A2A2A] rounded-full shadow-lg">
                       <div className="w-full h-full bg-[#2A2A2A] rounded-full animate-pulse opacity-70"></div>
                     </div>
@@ -393,24 +395,28 @@ const JournalPage: React.FC = () => {
                           key={index}
                           className="relative flex items-center w-full"
                         >
-                          {/* Connection line from main roadmap to emotion - shortened to not overlap with box */}
+                          {/* Mobile connector from left line to card */}
+                          <div className="absolute left-4 top-1/2 h-0.5 w-6 bg-[#2A2A2A] transform -translate-y-1/2 block sm:hidden"></div>
+                          {/* Desktop connection line from center to card */}
                           <div
-                            className={`absolute top-1/2 h-0.5 bg-gradient-to-r transform -translate-y-1/2 z-0 ${
+                            className={`absolute top-1/2 h-0.5 bg-gradient-to-r transform -translate-y-1/2 z-0 hidden sm:block ${
                               isEven
-                                ? "left-1/2 w-16 sm:w-20 from-[#2A2A2A] to-[#2A2A2A]"
-                                : "right-1/2 w-16 sm:w-20 from-[#2A2A2A] to-[#2A2A2A]"
+                                ? "left-1/2 w-16 from-[#2A2A2A] to-[#2A2A2A]"
+                                : "right-1/2 w-16 from-[#2A2A2A] to-[#2A2A2A]"
                             }`}
                           ></div>
 
-                          {/* Emotion node on the main line */}
-                          <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-gradient-to-r from-[#D4FF00] to-[#BEF264] rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 ring-2 ring-[#0D0D0D]/40 shadow-lg"></div>
+                          {/* Mobile node on the left line */}
+                          <div className="absolute left-4 top-1/2 w-3 h-3 bg-gradient-to-r from-[#D4FF00] to-[#BEF264] rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 ring-[3px] ring-[#0D0D0D]/60 shadow-md sm:hidden"></div>
+                          {/* Desktop node on the center line */}
+                          <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-gradient-to-r from-[#D4FF00] to-[#BEF264] rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 ring-2 ring-[#0D0D0D]/40 shadow-lg hidden sm:block"></div>
 
                           {/* Emotion card positioned alternately with solid background */}
                           <div
-                            className={`flex w-full z-10 ${
+                            className={`flex w-full z-10 justify-start pl-12 ${
                               isEven
-                                ? "justify-end pr-4 sm:pr-8"
-                                : "justify-start pl-4 sm:pl-8"
+                                ? "sm:justify-end sm:pl-0 sm:pr-8"
+                                : "sm:justify-start sm:pl-8 sm:pr-0"
                             }`}
                           >
                             <div className="w-full max-w-xs sm:max-w-sm">
