@@ -208,7 +208,7 @@ const HomePage: React.FC = () => {
             <div className="p-6 rounded-2xl bg-[#151515] border border-[#242424] hover:border-[#2F2F2F] transition-colors duration-200">
               <h3 className="font-semibold text-lg mb-2">Agentic Flow</h3>
               <p className="text-sm text-[#A0A0A0] leading-relaxed">
-                Not passive. Not reactive. Racf’fella steers conversations with
+                Not passive. Not reactive. Rac’fella steers conversations with
                 pacing, questions, and grounding guiding you out of loops, not
                 echoing them. The difference between a mirror and a mentor😎
               </p>
@@ -224,7 +224,7 @@ const HomePage: React.FC = () => {
             <span className="text-[#D4FF00]">Rac</span>fella
           </div>
           <p className="text-[#A0A0A0] text-sm">
-            © 2025 Racfella. Call and Calm. Your Balance.
+            © 2025 Racfella. Call and Calm. Your Balance. Your Destiny.
           </p>
         </div>
       </footer>
